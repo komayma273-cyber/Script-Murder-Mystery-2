@@ -433,35 +433,115 @@ local LocalPlayer = Players.LocalPlayer
 
 PlayerTab:CreateSection("การเคลื่อนที่")
 
+-- =========================================================
+-- 🏃 MOVEMENT SETTINGS
+-- =========================================================
+
+local SavedWalkSpeed = 16
+local SavedJumpPower = 50
+
+local function ApplyMovementSettings(Character)
+
+    local Humanoid =
+        Character:WaitForChild("Humanoid", 10)
+
+    if not Humanoid then
+        return
+    end
+
+    Humanoid.WalkSpeed = SavedWalkSpeed
+    Humanoid.JumpPower = SavedJumpPower
+
+end
+
+-- =========================================================
+-- 🏃 WALK SPEED
+-- =========================================================
+
 PlayerTab:CreateSlider({
+
     Name = "ความเร็ววิ่ง",
+
     Min = 16,
     Max = 200,
+
     Default = 16,
+
     Callback = function(Value)
-        local Character = LocalPlayer.Character
-        local Humanoid = Character and Character:FindFirstChildOfClass("Humanoid")
+
+        SavedWalkSpeed = Value
+
+        local Character =
+            LocalPlayer.Character
+
+        local Humanoid =
+            Character
+            and Character:FindFirstChildOfClass("Humanoid")
 
         if Humanoid then
             Humanoid.WalkSpeed = Value
         end
+
     end
+
 })
 
+-- =========================================================
+-- 🦘 JUMP POWER
+-- =========================================================
+
 PlayerTab:CreateSlider({
+
     Name = "พลังการกระโดด",
+
     Min = 50,
     Max = 200,
+
     Default = 50,
+
     Callback = function(Value)
-        local Character = LocalPlayer.Character
-        local Humanoid = Character and Character:FindFirstChildOfClass("Humanoid")
+
+        SavedJumpPower = Value
+
+        local Character =
+            LocalPlayer.Character
+
+        local Humanoid =
+            Character
+            and Character:FindFirstChildOfClass("Humanoid")
 
         if Humanoid then
             Humanoid.JumpPower = Value
         end
+
     end
+
 })
+
+-- =========================================================
+-- 🔄 REAPPLY AFTER RESPAWN
+-- =========================================================
+
+LocalPlayer.CharacterAdded:Connect(function(Character)
+
+    task.wait(0.2)
+
+    ApplyMovementSettings(Character)
+
+end)
+
+-- Apply to current character
+if LocalPlayer.Character then
+
+    task.spawn(function()
+
+        ApplyMovementSettings(
+            LocalPlayer.Character
+        )
+
+    end)
+
+end
 
 VisualTab:CreateSection("ระบบมองผู้เล่น")
 
@@ -2943,457 +3023,7 @@ PlayerTab:CreateButton({
     end
 })
 
---==============================================================
--- เกรียน
---==============================================================
 
-TrollTab:CreateSection("เลือกผู้เล่น")
-
-local TrollSelectedPlayer = nil
-
-local function GetTrollPlayerList()
-    local List = {}
-
-    for _, Player in ipairs(Players:GetPlayers()) do
-        if Player ~= LocalPlayer then
-            table.insert(List, Player.Name)
-        end
-    end
-
-    table.sort(List)
-
-    return List
-end
-
-local TrollPlayerOptions = GetTrollPlayerList()
-
-if #TrollPlayerOptions > 0 then
-
-    TrollTab:CreateDropdown({
-        Name = "เลือกผู้เล่น",
-        Options = TrollPlayerOptions,
-        Default = TrollPlayerOptions[1],
-        Callback = function(Value)
-
-            TrollSelectedPlayer = nil
-
-            for _, Player in ipairs(Players:GetPlayers()) do
-                if Player ~= LocalPlayer
-                and Player.Name == Value then
-
-                    TrollSelectedPlayer = Player
-                    break
-                end
-            end
-
-        end
-    })
-
-else
-
-    TrollTab:CreateDropdown({
-        Name = "เลือกผู้เล่น",
-        Options = {"ไม่มีผู้เล่น"},
-        Default = "ไม่มีผู้เล่น",
-        Callback = function()
-            TrollSelectedPlayer = nil
-        end
-    })
-
-end
-
-
---==============================================================
--- หา Murderer / Sheriff
---==============================================================
-
-local function FindTrollPlayerWithTool(ToolName)
-
-    for _, Player in ipairs(Players:GetPlayers()) do
-
-        if Player ~= LocalPlayer then
-
-            local Character = Player.Character
-            local Backpack = Player:FindFirstChild("Backpack")
-
-            if Character and Character:FindFirstChild(ToolName) then
-                return Player
-            end
-
-            if Backpack and Backpack:FindFirstChild(ToolName) then
-                return Player
-            end
-
-        end
-
-    end
-
-    return nil
-end
-
-
---==============================================================
--- ระบบกระเด็น
---==============================================================
-
-local function FlingPlayer(Target)
-
-    if not Target then
-        return
-    end
-
-    if Target == LocalPlayer then
-        return
-    end
-
-    local Character = LocalPlayer.Character
-
-    if not Character then
-        return
-    end
-
-    local Root = Character:FindFirstChild("HumanoidRootPart")
-
-    if not Root then
-        return
-    end
-
-    local TargetCharacter = Target.Character
-
-    if not TargetCharacter then
-        return
-    end
-
-    local TargetRoot =
-        TargetCharacter:FindFirstChild("HumanoidRootPart")
-
-    if not TargetRoot then
-        return
-    end
-
-    local OldCFrame = Root.CFrame
-
-    local Running = true
-
-    task.spawn(function()
-
-        while Running do
-
-            RunService.Heartbeat:Wait()
-
-            if not Root.Parent then
-                break
-            end
-
-            local Velocity = Root.Velocity
-
-            Root.Velocity =
-                Velocity * 8000
-                + Vector3.new(0, 8000, 0)
-
-            RunService.RenderStepped:Wait()
-
-            if Root.Parent then
-                Root.Velocity = Velocity
-            end
-
-        end
-
-    end)
-
-    local StartTime = tick()
-
-    while tick() - StartTime < 2 do
-
-        if not TargetRoot.Parent then
-            break
-        end
-
-        Root.CFrame = TargetRoot.CFrame
-
-        local Direction =
-            TargetRoot.Position - Root.Position
-
-        if Direction.Magnitude > 0 then
-            Root.Velocity =
-                Direction.Unit * 150
-        end
-
-        RunService.Heartbeat:Wait()
-
-    end
-
-    Running = false
-
-    if Root.Parent then
-        Root.CFrame = OldCFrame
-    end
-
-end
-
-
---==============================================================
--- กระเด็นคนที่เลือก
---==============================================================
-
-TrollTab:CreateButton({
-    Name = "กระเด็นคนที่เลือก",
-
-    Callback = function()
-
-        if not TrollSelectedPlayer
-        or not TrollSelectedPlayer.Parent then
-
-            Window:Notify({
-                Title = "เกรียน",
-                Content = "กรุณาเลือกผู้เล่นก่อน",
-                Duration = 3
-            })
-
-            return
-        end
-
-        FlingPlayer(TrollSelectedPlayer)
-
-        Window:Notify({
-            Title = "เกรียน",
-            Content = "จัดการ " .. TrollSelectedPlayer.Name .. " แล้ว",
-            Duration = 3
-        })
-
-    end
-})
-
-
---==============================================================
--- เตะ Sheriff
---==============================================================
-
-TrollTab:CreateButton({
-    Name = "เตะ Sheriff",
-
-    Callback = function()
-
-        local Sheriff =
-            FindTrollPlayerWithTool("Gun")
-
-        if not Sheriff then
-
-            Window:Notify({
-                Title = "เกรียน",
-                Content = "ไม่พบนายอำเภอ",
-                Duration = 3
-            })
-
-            return
-        end
-
-        FlingPlayer(Sheriff)
-
-        Window:Notify({
-            Title = "เกรียน",
-            Content = "จัดการ Sheriff แล้ว",
-            Duration = 3
-        })
-
-    end
-})
-
-
---==============================================================
--- เตะ Murderer
---==============================================================
-
-TrollTab:CreateButton({
-    Name = "เตะ Murderer",
-
-    Callback = function()
-
-        local Murderer =
-            FindTrollPlayerWithTool("Knife")
-
-        if not Murderer then
-
-            Window:Notify({
-                Title = "เกรียน",
-                Content = "ไม่พบ Murderer",
-                Duration = 3
-            })
-
-            return
-        end
-
-        FlingPlayer(Murderer)
-
-        Window:Notify({
-            Title = "เกรียน",
-            Content = "จัดการ Murderer แล้ว",
-            Duration = 3
-        })
-
-    end
-})
-
-
---==============================================================
--- ระบบเตะอัตโนมัติ
---==============================================================
-
-TrollTab:CreateSection("ระบบเตะ")
-
-local TouchKickEnabled = false
-local FlingAllEnabled = false
-
-local TouchKickConnection = nil
-
-
-TrollTab:CreateToggle({
-    Name = "เตะ",
-
-    Default = false,
-
-    Callback = function(Value)
-
-        TouchKickEnabled = Value
-
-        if TouchKickConnection then
-            TouchKickConnection:Disconnect()
-            TouchKickConnection = nil
-        end
-
-        if not Value then
-
-            Window:Notify({
-                Title = "เตะ",
-                Content = "ปิดระบบแล้ว",
-                Duration = 3
-            })
-
-            return
-        end
-
-        TouchKickConnection =
-            RunService.Heartbeat:Connect(function()
-
-                if not TouchKickEnabled then
-                    return
-                end
-
-                local Character =
-                    LocalPlayer.Character
-
-                if not Character then
-                    return
-                end
-
-                local Root =
-                    Character:FindFirstChild("HumanoidRootPart")
-
-                if not Root then
-                    return
-                end
-
-                for _, Player in ipairs(Players:GetPlayers()) do
-
-                    if Player ~= LocalPlayer
-                    and Player.Character then
-
-                        local TargetRoot =
-                            Player.Character:FindFirstChild(
-                                "HumanoidRootPart"
-                            )
-
-                        if TargetRoot then
-
-                            local Distance =
-                                (
-                                    Root.Position
-                                    - TargetRoot.Position
-                                ).Magnitude
-
-                            if Distance < 3 then
-
-                                task.spawn(function()
-                                    FlingPlayer(Player)
-                                end)
-
-                            end
-
-                        end
-
-                    end
-
-                end
-
-            end)
-
-        Window:Notify({
-            Title = "เตะ",
-            Content = "เปิดระบบแล้ว",
-            Duration = 3
-        })
-
-    end
-})
-
-
---==============================================================
--- เตะทุกคนในเซิฟ
---==============================================================
-
-TrollTab:CreateToggle({
-    Name = "เตะทุกคนในเซิฟ",
-
-    Default = false,
-
-    Callback = function(Value)
-
-        FlingAllEnabled = Value
-
-        if not Value then
-
-            Window:Notify({
-                Title = "เตะทุกคนในเซิฟ",
-                Content = "ปิดระบบแล้ว",
-                Duration = 3
-            })
-
-            return
-        end
-
-        Window:Notify({
-            Title = "เตะทุกคนในเซิฟ",
-            Content = "เริ่มเตะผู้เล่นทั้งหมด",
-            Duration = 3
-        })
-
-        task.spawn(function()
-
-            while FlingAllEnabled do
-
-                for _, Player in ipairs(Players:GetPlayers()) do
-
-                    if not FlingAllEnabled then
-                        break
-                    end
-
-                    if Player ~= LocalPlayer
-                    and Player.Parent then
-
-                        FlingPlayer(Player)
-
-                        task.wait(1)
-
-                    end
-
-                end
-
-            end
-
-        end)
-
-    end
-})
 
 
 --==============================================================
@@ -5748,3 +5378,1026 @@ pcall(function()
         toclipboard(DiscordInvite)
     end
 end)
+
+--==============================================================
+-- เกรียน
+--==============================================================
+
+TrollTab:CreateSection("เลือกผู้เล่น")
+
+local TrollSelectedPlayer = nil
+
+local function GetTrollPlayerList()
+
+    local List = {}
+
+    for _, Player in ipairs(Players:GetPlayers()) do
+        if Player ~= LocalPlayer then
+            table.insert(List, Player.Name)
+        end
+    end
+
+    table.sort(List)
+
+    return List
+end
+
+local TrollPlayerOptions = GetTrollPlayerList()
+
+if #TrollPlayerOptions > 0 then
+
+    TrollTab:CreateDropdown({
+        Name = "เลือกผู้เล่น",
+        Options = TrollPlayerOptions,
+        Default = TrollPlayerOptions[1],
+
+        Callback = function(Value)
+
+            TrollSelectedPlayer = nil
+
+            for _, Player in ipairs(Players:GetPlayers()) do
+
+                if Player ~= LocalPlayer
+                and Player.Name == Value then
+
+                    TrollSelectedPlayer = Player
+                    break
+
+                end
+
+            end
+
+        end
+    })
+
+else
+
+    TrollTab:CreateDropdown({
+        Name = "เลือกผู้เล่น",
+        Options = {"ไม่มีผู้เล่น"},
+        Default = "ไม่มีผู้เล่น",
+
+        Callback = function()
+            TrollSelectedPlayer = nil
+        end
+    })
+
+end
+
+
+--==============================================================
+-- หา Murderer / Sheriff
+--==============================================================
+
+local function FindTrollPlayerWithTool(ToolName)
+
+    for _, Player in ipairs(Players:GetPlayers()) do
+
+        if Player ~= LocalPlayer then
+
+            local Character = Player.Character
+            local Backpack = Player:FindFirstChild("Backpack")
+
+            if Character
+            and Character:FindFirstChild(ToolName) then
+
+                return Player
+
+            end
+
+            if Backpack
+            and Backpack:FindFirstChild(ToolName) then
+
+                return Player
+
+            end
+
+        end
+
+    end
+
+    return nil
+end
+
+
+--==============================================================
+-- ระบบกระเด็น
+--==============================================================
+
+local FlingRunning = {}
+
+local function FlingPlayer(Target)
+
+    if not Target
+    or Target == LocalPlayer
+    or not Target.Parent then
+
+        return
+    end
+
+    if FlingRunning[Target] then
+        return
+    end
+
+    local Character = LocalPlayer.Character
+
+    if not Character then
+        return
+    end
+
+    local Root =
+        Character:FindFirstChild("HumanoidRootPart")
+
+    if not Root then
+        return
+    end
+
+    local TargetCharacter =
+        Target.Character
+
+    if not TargetCharacter then
+        return
+    end
+
+    local TargetRoot =
+        TargetCharacter:FindFirstChild(
+            "HumanoidRootPart"
+        )
+
+    if not TargetRoot then
+        return
+    end
+
+    FlingRunning[Target] = true
+
+    --==========================================================
+    -- บันทึกตำแหน่งเดิม
+    --==========================================================
+
+    local OldCFrame =
+        Root.CFrame
+
+    local OldPosition =
+        Root.Position
+
+    local ForceConnection = nil
+    local Running = true
+
+    --==========================================================
+    -- เพิ่มแรง
+    --==========================================================
+
+    ForceConnection =
+        RunService.Heartbeat:Connect(function()
+
+            if not Running then
+                return
+            end
+
+            if not Root
+            or not Root.Parent then
+
+                return
+            end
+
+            local Velocity =
+                Root.AssemblyLinearVelocity
+
+            Root.AssemblyLinearVelocity =
+                Velocity * 8000
+                + Vector3.new(
+                    0,
+                    8000,
+                    0
+                )
+
+        end)
+
+    --==========================================================
+    -- เข้าหาเป้าหมาย
+    --==========================================================
+
+    local StartTime = tick()
+
+    while tick() - StartTime < 1.5 do
+
+        if not Running then
+            break
+        end
+
+        if not Root.Parent
+        or not TargetRoot.Parent then
+
+            break
+        end
+
+        Root.CFrame =
+            TargetRoot.CFrame
+
+        local Direction =
+            TargetRoot.Position
+            - Root.Position
+
+        if Direction.Magnitude > 0 then
+
+            Root.AssemblyLinearVelocity =
+                Direction.Unit * 150
+
+        end
+
+        RunService.Heartbeat:Wait()
+
+    end
+
+    --==========================================================
+    -- หยุดแรง
+    --==========================================================
+
+    Running = false
+
+    if ForceConnection then
+
+        ForceConnection:Disconnect()
+        ForceConnection = nil
+
+    end
+
+    --==========================================================
+    -- ดึงตัวเองกลับ
+    --==========================================================
+
+    if Root
+    and Root.Parent then
+
+        Root.AssemblyLinearVelocity =
+            Vector3.zero
+
+        Root.AssemblyAngularVelocity =
+            Vector3.zero
+
+        Root.CFrame =
+            OldCFrame
+
+        task.wait()
+
+        local Distance =
+            (
+                Root.Position
+                - OldPosition
+            ).Magnitude
+
+        if Distance > 10 then
+
+            Root.CFrame =
+                OldCFrame
+
+        end
+
+        Root.AssemblyLinearVelocity =
+            Vector3.zero
+
+        Root.AssemblyAngularVelocity =
+            Vector3.zero
+
+        task.wait()
+
+        local FinalDistance =
+            (
+                Root.Position
+                - OldPosition
+            ).Magnitude
+
+        if FinalDistance > 10 then
+
+            Root.CFrame =
+                OldCFrame
+
+            Root.AssemblyLinearVelocity =
+                Vector3.zero
+
+            Root.AssemblyAngularVelocity =
+                Vector3.zero
+
+        end
+
+    end
+
+    FlingRunning[Target] = nil
+
+end
+
+
+--==============================================================
+-- กระเด็นคนที่เลือก
+--==============================================================
+
+TrollTab:CreateButton({
+
+    Name = "กระเด็นคนที่เลือก",
+
+    Callback = function()
+
+        if not TrollSelectedPlayer
+        or not TrollSelectedPlayer.Parent then
+
+            Window:Notify({
+                Title = "เกรียน",
+                Content = "กรุณาเลือกผู้เล่นก่อน",
+                Duration = 3
+            })
+
+            return
+        end
+
+        local TargetName =
+            TrollSelectedPlayer.Name
+
+        FlingPlayer(
+            TrollSelectedPlayer
+        )
+
+        Window:Notify({
+            Title = "เกรียน",
+            Content =
+                "จัดการ "
+                .. TargetName
+                .. " แล้ว",
+            Duration = 3
+        })
+
+    end
+})
+
+
+--==============================================================
+-- เตะ Sheriff
+--==============================================================
+
+TrollTab:CreateButton({
+
+    Name = "เตะ Sheriff",
+
+    Callback = function()
+
+        local Sheriff =
+            FindTrollPlayerWithTool("Gun")
+
+        if not Sheriff then
+
+            Window:Notify({
+                Title = "เกรียน",
+                Content = "ไม่พบนายอำเภอ",
+                Duration = 3
+            })
+
+            return
+        end
+
+        FlingPlayer(Sheriff)
+
+        Window:Notify({
+            Title = "เกรียน",
+            Content = "จัดการ Sheriff แล้ว",
+            Duration = 3
+        })
+
+    end
+})
+
+
+--==============================================================
+-- เตะ Murderer
+--==============================================================
+
+TrollTab:CreateButton({
+
+    Name = "เตะ Murderer",
+
+    Callback = function()
+
+        local Murderer =
+            FindTrollPlayerWithTool("Knife")
+
+        if not Murderer then
+
+            Window:Notify({
+                Title = "เกรียน",
+                Content = "ไม่พบ Murderer",
+                Duration = 3
+            })
+
+            return
+        end
+
+        FlingPlayer(Murderer)
+
+        Window:Notify({
+            Title = "เกรียน",
+            Content = "จัดการ Murderer แล้ว",
+            Duration = 3
+        })
+
+    end
+})
+
+
+--==============================================================
+-- ระบบป้องกัน
+--==============================================================
+
+TrollTab:CreateSection("ระบบป้องกัน")
+
+local AntiFlingEnabled = false
+local AntiFlingConnection = nil
+
+local OriginalCollision = {}
+
+local function SetAntiFling(Character)
+
+    if not Character then
+        return
+    end
+
+    for _, Part in ipairs(
+        Character:GetDescendants()
+    ) do
+
+        if Part:IsA("BasePart") then
+
+            if OriginalCollision[Part] == nil then
+
+                OriginalCollision[Part] =
+                    Part.CanCollide
+
+            end
+
+            Part.CanCollide = false
+
+        end
+
+    end
+
+end
+
+
+local function RestoreCollision()
+
+    for Part, OriginalValue in pairs(
+        OriginalCollision
+    ) do
+
+        if Part
+        and Part.Parent then
+
+            Part.CanCollide =
+                OriginalValue
+
+        end
+
+    end
+
+    table.clear(
+        OriginalCollision
+    )
+
+end
+
+
+--==============================================================
+-- กันฟลิง
+--==============================================================
+
+TrollTab:CreateToggle({
+
+    Name = "กันฟลิง",
+
+    Default = false,
+
+    Callback = function(Value)
+
+        AntiFlingEnabled = Value
+
+        if AntiFlingConnection then
+
+            AntiFlingConnection:Disconnect()
+
+            AntiFlingConnection = nil
+
+        end
+
+        if not Value then
+
+            RestoreCollision()
+
+            Window:Notify({
+                Title = "กันฟลิง",
+                Content =
+                    "ปิดแล้ว สามารถชนผู้เล่นได้ตามปกติ",
+                Duration = 3
+            })
+
+            return
+        end
+
+        if LocalPlayer.Character then
+
+            SetAntiFling(
+                LocalPlayer.Character
+            )
+
+        end
+
+        AntiFlingConnection =
+            RunService.Heartbeat:Connect(
+                function()
+
+                    if not AntiFlingEnabled then
+                        return
+                    end
+
+                    local Character =
+                        LocalPlayer.Character
+
+                    if Character then
+
+                        SetAntiFling(
+                            Character
+                        )
+
+                    end
+
+                end
+            )
+
+        Window:Notify({
+            Title = "กันฟลิง",
+            Content =
+                "เปิดแล้ว เดินทะลุผู้เล่นได้",
+            Duration = 3
+        })
+
+    end
+})
+
+
+--==============================================================
+-- กันฟลิงหลัง Respawn
+--==============================================================
+
+LocalPlayer.CharacterAdded:Connect(
+    function(Character)
+
+        if AntiFlingEnabled then
+
+            task.wait(0.5)
+
+            SetAntiFling(
+                Character
+            )
+
+        end
+
+    end
+)
+
+
+--==============================================================
+-- ระบบเตะ
+--==============================================================
+
+TrollTab:CreateSection("ระบบเตะ")
+
+local TouchKickEnabled = false
+local FlingAllEnabled = false
+local TouchKickConnection = nil
+
+
+TrollTab:CreateToggle({
+
+    Name = "เตะ",
+
+    Default = false,
+
+    Callback = function(Value)
+
+        TouchKickEnabled = Value
+
+        if TouchKickConnection then
+
+            TouchKickConnection:Disconnect()
+            TouchKickConnection = nil
+
+        end
+
+        if not Value then
+
+            Window:Notify({
+                Title = "เตะ",
+                Content = "ปิดระบบแล้ว",
+                Duration = 3
+            })
+
+            return
+        end
+
+        TouchKickConnection =
+            RunService.Heartbeat:Connect(
+                function()
+
+                    if not TouchKickEnabled then
+                        return
+                    end
+
+                    local Character =
+                        LocalPlayer.Character
+
+                    if not Character then
+                        return
+                    end
+
+                    local Root =
+                        Character:FindFirstChild(
+                            "HumanoidRootPart"
+                        )
+
+                    if not Root then
+                        return
+                    end
+
+                    for _, Player in ipairs(
+                        Players:GetPlayers()
+                    ) do
+
+                        if Player ~= LocalPlayer
+                        and Player.Character then
+
+                            local TargetRoot =
+                                Player.Character:
+                                FindFirstChild(
+                                    "HumanoidRootPart"
+                                )
+
+                            if TargetRoot then
+
+                                local Distance =
+                                    (
+                                        Root.Position
+                                        - TargetRoot.Position
+                                    ).Magnitude
+
+                                if Distance < 3 then
+
+                                    if not FlingRunning[Player] then
+
+                                        task.spawn(
+                                            function()
+
+                                                FlingPlayer(
+                                                    Player
+                                                )
+
+                                            end
+                                        )
+
+                                    end
+
+                                end
+
+                            end
+
+                        end
+
+                    end
+
+                end
+            )
+
+        Window:Notify({
+            Title = "เตะ",
+            Content = "เปิดระบบแล้ว",
+            Duration = 3
+        })
+
+    end
+})
+
+
+--==============================================================
+-- เตะทุกคนในเซิฟ
+--==============================================================
+
+TrollTab:CreateToggle({
+
+    Name = "เตะทุกคนในเซิฟ",
+
+    Default = false,
+
+    Callback = function(Value)
+
+        FlingAllEnabled = Value
+
+        if not Value then
+
+            Window:Notify({
+                Title = "เตะทุกคนในเซิฟ",
+                Content = "ปิดระบบแล้ว",
+                Duration = 3
+            })
+
+            return
+        end
+
+        Window:Notify({
+            Title = "เตะทุกคนในเซิฟ",
+            Content = "เริ่มเตะผู้เล่นทั้งหมด",
+            Duration = 3
+        })
+
+        task.spawn(function()
+
+            while FlingAllEnabled do
+
+                for _, Player in ipairs(
+                    Players:GetPlayers()
+                ) do
+
+                    if not FlingAllEnabled then
+                        break
+                    end
+
+                    if Player ~= LocalPlayer
+                    and Player.Parent
+                    and not FlingRunning[Player] then
+
+                        FlingPlayer(
+                            Player
+                        )
+
+                        task.wait(1)
+
+                    end
+
+                end
+
+                task.wait(0.5)
+
+            end
+
+        end)
+
+    end
+})
+
+--==============================================================
+-- มองหากับดัก
+--==============================================================
+
+ESPTab:CreateToggle({
+
+    Name = "มองหากับดัก",
+
+    Default = false,
+
+    Callback = function(Value)
+
+        TrapESPEnabled = Value
+
+        if not Value then
+
+            -- ลบ ESP ทั้งหมด
+            for Object, Data in pairs(TrapESPObjects) do
+
+                if Data.Highlight then
+                    Data.Highlight:Destroy()
+                end
+
+                if Data.Billboard then
+                    Data.Billboard:Destroy()
+                end
+
+                TrapESPObjects[Object] = nil
+
+            end
+
+            Window:Notify({
+                Title = "มองหากับดัก",
+                Content = "ปิดระบบแล้ว",
+                Duration = 3
+            })
+
+            return
+        end
+
+        Window:Notify({
+            Title = "มองหากับดัก",
+            Content = "กำลังสแกนกับดัก",
+            Duration = 3
+        })
+
+        task.spawn(function()
+
+            while TrapESPEnabled do
+
+                local CurrentTraps = {}
+
+                --==================================================
+                -- สแกน Workspace
+                --==================================================
+
+                for _, Object in ipairs(
+                    workspace:GetDescendants()
+                ) do
+
+                    if not TrapESPEnabled then
+                        break
+                    end
+
+                    if Object.Name == "Trap" then
+
+                        local Target = Object
+
+                        -- ถ้าเป็น Model ใช้ตัว Model
+                        -- ถ้าเป็น Part ก็ใช้ Part ได้
+                        if Target:IsA("Model")
+                        or Target:IsA("BasePart") then
+
+                            CurrentTraps[Target] = true
+
+                            --==================================================
+                            -- สร้าง ESP
+                            --==================================================
+
+                            if not TrapESPObjects[Target] then
+
+                                local Highlight =
+                                    Instance.new("Highlight")
+
+                                Highlight.Name =
+                                    "KOMAT_TrapESP"
+
+                                Highlight.Adornee =
+                                    Target
+
+                                Highlight.FillColor =
+                                    Color3.fromRGB(
+                                        255,
+                                        220,
+                                        0
+                                    )
+
+                                Highlight.OutlineColor =
+                                    Color3.fromRGB(
+                                        255,
+                                        255,
+                                        0
+                                    )
+
+                                Highlight.FillTransparency =
+                                    0.8
+
+                                Highlight.OutlineTransparency =
+                                    0
+
+                                Highlight.DepthMode =
+                                    Enum.HighlightDepthMode.AlwaysOnTop
+
+                                Highlight.Parent =
+                                    Target
+
+
+                                --==================================================
+                                -- ข้อความ
+                                --==================================================
+
+                                local Billboard =
+                                    Instance.new(
+                                        "BillboardGui"
+                                    )
+
+                                Billboard.Name =
+                                    "KOMAT_TrapName"
+
+                                Billboard.Adornee =
+                                    Target
+
+                                Billboard.Size =
+                                    UDim2.fromOffset(
+                                        120,
+                                        30
+                                    )
+
+                                Billboard.StudsOffset =
+                                    Vector3.new(
+                                        0,
+                                        3,
+                                        0
+                                    )
+
+                                Billboard.AlwaysOnTop =
+                                    true
+
+                                Billboard.Parent =
+                                    Target
+
+
+                                local Text =
+                                    Instance.new(
+                                        "TextLabel"
+                                    )
+
+                                Text.Size =
+                                    UDim2.new(
+                                        1,
+                                        0,
+                                        1,
+                                        0
+                                    )
+
+                                Text.BackgroundTransparency =
+                                    1
+
+                                Text.Text =
+                                    "กับดัก"
+
+                                Text.TextColor3 =
+                                    Color3.fromRGB(
+                                        255,
+                                        255,
+                                        0
+                                    )
+
+                                Text.TextStrokeColor3 =
+                                    Color3.fromRGB(
+                                        0,
+                                        0,
+                                        0
+                                    )
+
+                                Text.TextStrokeTransparency =
+                                    0
+
+                                Text.TextSize =
+                                    14
+
+                                Text.Font =
+                                    Enum.Font.GothamBold
+
+                                Text.Parent =
+                                    Billboard
+
+
+                                TrapESPObjects[Target] = {
+
+                                    Highlight = Highlight,
+                                    Billboard = Billboard
+
+                                }
+
+                            end
+
+                        end
+
+                    end
+
+                end
+
+
+                --==================================================
+                -- ลบ ESP ของกับดักที่หายไป
+                --==================================================
+
+                for Object, Data in pairs(
+                    TrapESPObjects
+                ) do
+
+                    if not CurrentTraps[Object]
+                    or not Object.Parent then
+
+                        if Data.Highlight then
+                            Data.Highlight:Destroy()
+                        end
+
+                        if Data.Billboard then
+                            Data.Billboard:Destroy()
+                        end
+
+                        TrapESPObjects[Object] = nil
+
+                    end
+
+                end
+
+
+                --==================================================
+                -- รอสแกนรอบต่อไป
+                --==================================================
+
+                task.wait(0.5)
+
+            end
+
+        end)
+
+    end
+
+})
