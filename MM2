@@ -3610,252 +3610,7 @@ PlayerTab:CreateToggle({
     end
 })
 
-local TweenService = game:GetService("TweenService")
-local UserInputService = game:GetService("UserInputService")
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
 
--- ฟังก์ชันค้นหา Instance ที่ถูกซ่อนอยู่ใน Nil
-local function getNil(name, className)
-    if not getnilinstances then return nil end
-    for _, v in ipairs(getnilinstances()) do
-        if v.ClassName == className and v.Name == name then
-            return v
-        end
-    end
-    return nil
-end
-
-SheriffTab:CreateToggle({
-    Name = "กดยิงฆาตกรตรงไหนก็รตรงไหนก็ได้",
-    Default = false,
-    Callback = function(Value)
-        local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")  
-        local OldGui = PlayerGui:FindFirstChild("KOMAT_FloatingButton")  
-
-        -- ลบ GUI เดิมออกถ้ามีอยู่
-        if OldGui then  
-            OldGui:Destroy()  
-        end  
-
-        if not Value then  
-            return  
-        end  
-
-        -- 1. สร้าง ScreenGui และ TextButton
-        local ScreenGui = Instance.new("ScreenGui")  
-        ScreenGui.Name = "KOMAT_FloatingButton"  
-        ScreenGui.ResetOnSpawn = false  
-        ScreenGui.IgnoreGuiInset = true  
-        ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling  
-        ScreenGui.Parent = PlayerGui  
-
-        local Button = Instance.new("TextButton")  
-        Button.Name = "FloatingButton"  
-        Button.Size = UDim2.new(0, 145, 0, 52)  
-        Button.Position = UDim2.new(0.5, -72, 0.82, 0)  
-        Button.BackgroundColor3 = Color3.fromRGB(110, 195, 255)  
-        Button.BackgroundTransparency = 0.42  
-        Button.BorderSizePixel = 0  
-        Button.Text = "ยิงฆาตกร"  
-        Button.TextColor3 = Color3.fromRGB(240, 250, 255)  
-        Button.TextSize = 17  
-        Button.Font = Enum.Font.GothamBold  
-        Button.AutoButtonColor = false  
-        Button.Active = true  
-        Button.ZIndex = 10  
-        Button.Parent = ScreenGui  
-
-        local Corner = Instance.new("UICorner")  
-        Corner.CornerRadius = UDim.new(0, 9)  
-        Corner.Parent = Button  
-
-        local Stroke = Instance.new("UIStroke")  
-        Stroke.Thickness = 2  
-        Stroke.Transparency = 0.12  
-        Stroke.Color = Color3.fromRGB(210, 242, 255)  
-        Stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border  
-        Stroke.Parent = Button  
-
-        local Gradient = Instance.new("UIGradient")  
-        Gradient.Color = ColorSequence.new({  
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(185, 230, 255)),  
-            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(100, 190, 255)),  
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(175, 225, 255))  
-        })  
-
-        Gradient.Transparency = NumberSequence.new({  
-            NumberSequenceKeypoint.new(0, 0.15),  
-            NumberSequenceKeypoint.new(0.5, 0.38),  
-            NumberSequenceKeypoint.new(1, 0.18)  
-        })  
-
-        Gradient.Rotation = 25  
-        Gradient.Parent = Button  
-
-        local Highlight = Instance.new("Frame")  
-        Highlight.Name = "Highlight"  
-        Highlight.Size = UDim2.new(1, -18, 0, 2)  
-        Highlight.Position = UDim2.new(0, 9, 0, 6)  
-        Highlight.BackgroundColor3 = Color3.fromRGB(255, 255, 255)  
-        Highlight.BackgroundTransparency = 0.3  
-        Highlight.BorderSizePixel = 0  
-        Highlight.ZIndex = 11  
-        Highlight.Parent = Button  
-
-        local HighlightCorner = Instance.new("UICorner")  
-        HighlightCorner.CornerRadius = UDim.new(1, 0)  
-        HighlightCorner.Parent = Highlight  
-
-        local NormalSize = UDim2.new(0, 145, 0, 52)  
-        local PressSize = UDim2.new(0, 137, 0, 49)  
-
-        -- 2. ระบบ Drag (ลากปุ่ม)
-        local Dragging = false  
-        local DragStart = nil  
-        local StartPosition = nil  
-        local DragInput = nil  
-        local Moved = false  
-
-        local function UpdateDrag(Input)  
-            if not DragStart or not StartPosition then return end  
-
-            local Delta = Input.Position - DragStart  
-            if math.abs(Delta.X) > 6 or math.abs(Delta.Y) > 6 then  
-                Moved = true  
-            end  
-
-            Button.Position = UDim2.new(  
-                StartPosition.X.Scale,  
-                StartPosition.X.Offset + Delta.X,  
-                StartPosition.Y.Scale,  
-                StartPosition.Y.Offset + Delta.Y  
-            )  
-        end  
-
-        Button.InputBegan:Connect(function(Input)  
-            if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then  
-                Dragging = true  
-                Moved = false  
-                DragStart = Input.Position  
-                StartPosition = Button.Position  
-
-                Input.Changed:Connect(function()  
-                    if Input.UserInputState == Enum.UserInputState.End then  
-                        Dragging = false  
-                    end  
-                end)  
-            end  
-        end)  
-
-        Button.InputChanged:Connect(function(Input)  
-            if Input.UserInputType == Enum.UserInputType.MouseMovement or Input.UserInputType == Enum.UserInputType.Touch then  
-                DragInput = Input  
-            end  
-        end)  
-
-        local DragConnection = UserInputService.InputChanged:Connect(function(Input)  
-            if Input == DragInput and Dragging then  
-                UpdateDrag(Input)  
-            end  
-        end)  
-
-        -- 3. Animation กดปุ่ม
-        Button.MouseButton1Down:Connect(function()  
-            TweenService:Create(Button, TweenInfo.new(0.08, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Size = PressSize, BackgroundTransparency = 0.25, Rotation = -2 }):Play()  
-            TweenService:Create(Stroke, TweenInfo.new(0.08), { Thickness = 3, Transparency = 0 }):Play()  
-            TweenService:Create(Highlight, TweenInfo.new(0.08), { BackgroundTransparency = 0 }):Play()  
-        end)  
-
-        Button.MouseButton1Up:Connect(function()  
-            TweenService:Create(Button, TweenInfo.new(0.22, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Size = NormalSize, BackgroundTransparency = 0.42, Rotation = 0 }):Play()  
-            TweenService:Create(Stroke, TweenInfo.new(0.22), { Thickness = 2, Transparency = 0.12 }):Play()  
-            TweenService:Create(Highlight, TweenInfo.new(0.22), { BackgroundTransparency = 0.3 }):Play()  
-        end)  
-
-        -- 4. ระบบกดปุ่มเพื่อยิง (เสกกระสุนโผล่หน้าฆาตกร 3 สตัด)
-        Button.MouseButton1Click:Connect(function()  
-            if Moved then  
-                Moved = false  
-                return  
-            end  
-
-            local Character = LocalPlayer.Character  
-            if not Character then return end  
-
-            local Humanoid = Character:FindFirstChildOfClass("Humanoid")  
-            if not Humanoid then return end  
-
-            -- ค้นหาปืน (Gun)
-            local Gun = Character:FindFirstChild("Gun") or (LocalPlayer:FindFirstChild("Backpack") and LocalPlayer.Backpack:FindFirstChild("Gun"))  
-
-            if not Gun then  
-                Window:Notify({ Title = "นายอำเภอ", Content = "ไม่พบปืนในตัวหรือกระเป๋า", Duration = 3 })  
-                return  
-            end  
-
-            -- ถือปืนอัตโนมัติ
-            if Gun.Parent ~= Character then  
-                Humanoid:EquipTool(Gun)  
-                task.wait(0.05)  
-            end  
-
-            Character = LocalPlayer.Character  
-            if not Character then return end  
-            Gun = Character:FindFirstChild("Gun")  
-            if not Gun then return end  
-
-            -- ตรวจสอบ Remote ยิง
-            local Shoot = Gun:FindFirstChild("Shoot") or getNil("Shoot", "RemoteEvent")  
-            if not Shoot then return end  
-
-            -- ค้นหา Murderer (คนที่ถือมีด หรือมีมีดในกระเป๋า)
-            local Murderer = nil  
-            for _, Player in ipairs(Players:GetPlayers()) do  
-                if Player ~= LocalPlayer then  
-                    local TargetChar = Player.Character  
-                    local TargetBag = Player:FindFirstChild("Backpack")  
-
-                    if (TargetChar and TargetChar:FindFirstChild("Knife")) or (TargetBag and TargetBag:FindFirstChild("Knife")) then  
-                        Murderer = Player  
-                        break  
-                    end  
-                end  
-            end  
-
-            if not Murderer or not Murderer.Character then  
-                Window:Notify({ Title = "นายอำเภอ", Content = "ไม่พบฆาตกรในห้อง", Duration = 3 })  
-                return  
-            end  
-
-            -- กำหนดเป้าหมาย (ตัวฆาตกร)
-            local TargetPart = Murderer.Character:FindFirstChild("Head") or Murderer.Character:FindFirstChild("HumanoidRootPart")  
-            if not TargetPart then return end  
-
-            local TargetCFrame = TargetPart.CFrame
-
-            -- คำนวณจุดโผล่กระสุน "ตรงหน้าฆาตกร ห่างออกไป 3 สตัด"
-            local SpawnPosition = TargetCFrame.Position + (TargetCFrame.LookVector * 3)
-
-            -- CFrame กำหนดให้กระสุนตั้งต้นจากจุดด้านหน้า 3 สตัด แล้วพุ่งเข้าหาหน้าฆาตกร
-            local OriginCFrame = CFrame.new(SpawnPosition, TargetCFrame.Position)
-            local TargetPosCFrame = CFrame.new(TargetCFrame.Position)
-
-            -- ส่งคำสั่งยิง
-            Shoot:FireServer(OriginCFrame, TargetPosCFrame)
-
-            Window:Notify({ Title = "นายอำเภอ", Content = "เสกกระสุนโผล่หน้าฆาตกร 3 สตัดแล้ว!", Duration = 3 })  
-        end)  
-
-        -- ล้าง Connection เมื่อทำลาย GUI (ป้องกัน Memory Leak)
-        ScreenGui.Destroying:Connect(function()  
-            if DragConnection then  
-                DragConnection:Disconnect()  
-                DragConnection = nil  
-            end  
-        end)  
-    end  
-})
 
 -- =========================================================
 -- ⏱️ ดูเวลา
@@ -6400,4 +6155,858 @@ ESPTab:CreateToggle({
 
     end
 
+})
+
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+local LocalPlayer = Players.LocalPlayer
+
+--==================================================
+-- GET NIL INSTANCE
+--==================================================
+
+local function getNil(name, className)
+    if not getnilinstances then
+        return nil
+    end
+
+    for _, v in ipairs(getnilinstances()) do
+        if v.ClassName == className and v.Name == name then
+            return v
+        end
+    end
+
+    return nil
+end
+
+--==================================================
+-- SETTINGS
+--==================================================
+
+local BulletDistance = 3
+local ShowBulletDistance = false
+
+local BulletPreviewPart = nil
+local BulletPreviewConnection = nil
+
+--==================================================
+-- FIND MURDERER
+--==================================================
+
+local function FindMurderer()
+    for _, Player in ipairs(Players:GetPlayers()) do
+        if Player ~= LocalPlayer then
+
+            local Character = Player.Character
+            local Backpack = Player:FindFirstChild("Backpack")
+
+            if Character and Character:FindFirstChild("Knife") then
+                return Player
+            end
+
+            if Backpack and Backpack:FindFirstChild("Knife") then
+                return Player
+            end
+        end
+    end
+
+    return nil
+end
+
+--==================================================
+-- GET TARGET PART
+--==================================================
+
+local function GetMurdererTarget()
+    local Murderer = FindMurderer()
+
+    if not Murderer then
+        return nil
+    end
+
+    local Character = Murderer.Character
+
+    if not Character then
+        return nil
+    end
+
+    local Head = Character:FindFirstChild("Head")
+
+    if Head then
+        return Head
+    end
+
+    return Character:FindFirstChild("HumanoidRootPart")
+end
+
+--==================================================
+-- CREATE BULLET PREVIEW
+--==================================================
+
+local function CreateBulletPreview()
+    if BulletPreviewPart then
+        BulletPreviewPart:Destroy()
+        BulletPreviewPart = nil
+    end
+
+    local Part = Instance.new("Part")
+
+    Part.Name = "KOMAT_BulletDistancePreview"
+    Part.Anchored = true
+    Part.CanCollide = false
+    Part.CanTouch = false
+    Part.CanQuery = false
+
+    Part.Material = Enum.Material.Neon
+    Part.Color = Color3.fromRGB(80, 190, 255)
+
+    Part.Transparency = 0.25
+
+    Part.Size = Vector3.new(0.18, 0.18, 1)
+
+    Part.Parent = workspace
+
+    BulletPreviewPart = Part
+end
+
+--==================================================
+-- UPDATE BULLET PREVIEW
+--==================================================
+
+local function UpdateBulletPreview()
+    if not ShowBulletDistance then
+        return
+    end
+
+    if not BulletPreviewPart then
+        CreateBulletPreview()
+    end
+
+    local TargetPart = GetMurdererTarget()
+
+    if not TargetPart then
+        BulletPreviewPart.Transparency = 1
+        return
+    end
+
+    local TargetPosition = TargetPart.Position
+
+    local SpawnPosition =
+        TargetPosition
+        + (TargetPart.CFrame.LookVector * BulletDistance)
+
+    local Direction = TargetPosition - SpawnPosition
+    local Distance = Direction.Magnitude
+
+    if Distance <= 0.05 then
+        BulletPreviewPart.Transparency = 1
+        return
+    end
+
+    BulletPreviewPart.Transparency = 0.25
+
+    BulletPreviewPart.Size = Vector3.new(
+        0.18,
+        0.18,
+        Distance
+    )
+
+    BulletPreviewPart.CFrame =
+        CFrame.lookAt(
+            (SpawnPosition + TargetPosition) / 2,
+            TargetPosition
+        )
+end
+
+--==================================================
+-- PREVIEW LOOP
+--==================================================
+
+local function StartBulletPreview()
+    if BulletPreviewConnection then
+        BulletPreviewConnection:Disconnect()
+        BulletPreviewConnection = nil
+    end
+
+    CreateBulletPreview()
+
+    BulletPreviewConnection = RunService.RenderStepped:Connect(function()
+        if not ShowBulletDistance then
+            return
+        end
+
+        UpdateBulletPreview()
+    end)
+end
+
+--==================================================
+-- STOP PREVIEW
+--==================================================
+
+local function StopBulletPreview()
+    if BulletPreviewConnection then
+        BulletPreviewConnection:Disconnect()
+        BulletPreviewConnection = nil
+    end
+
+    if BulletPreviewPart then
+        BulletPreviewPart:Destroy()
+        BulletPreviewPart = nil
+    end
+end
+
+--==================================================
+-- BULLET DISTANCE SLIDER
+--==================================================
+
+SheriffTab:CreateSlider({
+    Name = "ระยะกระสุนโผล่หน้าฆาตกร",
+    Min = 1,
+    Max = 30,
+    Default = 3,
+
+    Callback = function(Value)
+
+        BulletDistance = Value
+
+        if ShowBulletDistance then
+            UpdateBulletPreview()
+        end
+
+    end
+})
+
+--==================================================
+-- SHOW BULLET DISTANCE
+--==================================================
+
+SheriffTab:CreateToggle({
+    Name = "แสดงระยะกระสุน",
+    Default = false,
+
+    Callback = function(Value)
+
+        ShowBulletDistance = Value
+
+        if Value then
+
+            StartBulletPreview()
+
+            Window:Notify({
+                Title = "นายอำเภอ",
+                Content = "เปิดการแสดงตำแหน่งกระสุนแล้ว",
+                Duration = 3
+            })
+
+        else
+
+            StopBulletPreview()
+
+            Window:Notify({
+                Title = "นายอำเภอ",
+                Content = "ปิดการแสดงตำแหน่งกระสุนแล้ว",
+                Duration = 3
+            })
+
+        end
+
+    end
+})
+
+--==================================================
+-- SHOOT BUTTON
+--==================================================
+
+SheriffTab:CreateToggle({
+    Name = "กดยิงฆาตกรตรงไหนก็ได้",
+    Default = false,
+
+    Callback = function(Value)
+
+        local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+
+        local OldGui =
+            PlayerGui:FindFirstChild("KOMAT_FloatingButton")
+
+        if OldGui then
+            OldGui:Destroy()
+        end
+
+        if not Value then
+            return
+        end
+
+        --==================================================
+        -- SCREEN GUI
+        --==================================================
+
+        local ScreenGui = Instance.new("ScreenGui")
+
+        ScreenGui.Name = "KOMAT_FloatingButton"
+        ScreenGui.ResetOnSpawn = false
+        ScreenGui.IgnoreGuiInset = true
+        ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+        ScreenGui.Parent = PlayerGui
+
+        --==================================================
+        -- BUTTON
+        --==================================================
+
+        local Button = Instance.new("TextButton")
+
+        Button.Name = "FloatingButton"
+
+        Button.Size = UDim2.new(0, 145, 0, 52)
+
+        Button.Position =
+            UDim2.new(0.5, -72, 0.82, 0)
+
+        Button.BackgroundColor3 =
+            Color3.fromRGB(110, 195, 255)
+
+        Button.BackgroundTransparency = 0.42
+
+        Button.BorderSizePixel = 0
+
+        Button.Text = "ยิงฆาตกร"
+
+        Button.TextColor3 =
+            Color3.fromRGB(240, 250, 255)
+
+        Button.TextSize = 17
+
+        Button.Font = Enum.Font.GothamBold
+
+        Button.AutoButtonColor = false
+
+        Button.Active = true
+
+        Button.ZIndex = 10
+
+        Button.Parent = ScreenGui
+
+        --==================================================
+        -- CORNER
+        --==================================================
+
+        local Corner = Instance.new("UICorner")
+
+        Corner.CornerRadius =
+            UDim.new(0, 9)
+
+        Corner.Parent = Button
+
+        --==================================================
+        -- STROKE
+        --==================================================
+
+        local Stroke = Instance.new("UIStroke")
+
+        Stroke.Thickness = 2
+
+        Stroke.Transparency = 0.12
+
+        Stroke.Color =
+            Color3.fromRGB(210, 242, 255)
+
+        Stroke.ApplyStrokeMode =
+            Enum.ApplyStrokeMode.Border
+
+        Stroke.Parent = Button
+
+        --==================================================
+        -- GRADIENT
+        --==================================================
+
+        local Gradient = Instance.new("UIGradient")
+
+        Gradient.Color =
+            ColorSequence.new({
+
+                ColorSequenceKeypoint.new(
+                    0,
+                    Color3.fromRGB(185, 230, 255)
+                ),
+
+                ColorSequenceKeypoint.new(
+                    0.5,
+                    Color3.fromRGB(100, 190, 255)
+                ),
+
+                ColorSequenceKeypoint.new(
+                    1,
+                    Color3.fromRGB(175, 225, 255)
+                )
+
+            })
+
+        Gradient.Transparency =
+            NumberSequence.new({
+
+                NumberSequenceKeypoint.new(
+                    0,
+                    0.15
+                ),
+
+                NumberSequenceKeypoint.new(
+                    0.5,
+                    0.38
+                ),
+
+                NumberSequenceKeypoint.new(
+                    1,
+                    0.18
+                )
+
+            })
+
+        Gradient.Rotation = 25
+
+        Gradient.Parent = Button
+
+        --==================================================
+        -- HIGHLIGHT
+        --==================================================
+
+        local Highlight = Instance.new("Frame")
+
+        Highlight.Name = "Highlight"
+
+        Highlight.Size =
+            UDim2.new(1, -18, 0, 2)
+
+        Highlight.Position =
+            UDim2.new(0, 9, 0, 6)
+
+        Highlight.BackgroundColor3 =
+            Color3.fromRGB(255, 255, 255)
+
+        Highlight.BackgroundTransparency = 0.3
+
+        Highlight.BorderSizePixel = 0
+
+        Highlight.ZIndex = 11
+
+        Highlight.Parent = Button
+
+        local HighlightCorner =
+            Instance.new("UICorner")
+
+        HighlightCorner.CornerRadius =
+            UDim.new(1, 0)
+
+        HighlightCorner.Parent = Highlight
+
+        --==================================================
+        -- BUTTON SIZE
+        --==================================================
+
+        local NormalSize =
+            UDim2.new(0, 145, 0, 52)
+
+        local PressSize =
+            UDim2.new(0, 137, 0, 49)
+
+        --==================================================
+        -- DRAG SYSTEM
+        --==================================================
+
+        local Dragging = false
+        local DragStart = nil
+        local StartPosition = nil
+        local DragInput = nil
+        local Moved = false
+
+        local function UpdateDrag(Input)
+
+            if not DragStart or not StartPosition then
+                return
+            end
+
+            local Delta =
+                Input.Position - DragStart
+
+            if
+                math.abs(Delta.X) > 6
+                or math.abs(Delta.Y) > 6
+            then
+                Moved = true
+            end
+
+            Button.Position = UDim2.new(
+
+                StartPosition.X.Scale,
+
+                StartPosition.X.Offset + Delta.X,
+
+                StartPosition.Y.Scale,
+
+                StartPosition.Y.Offset + Delta.Y
+
+            )
+        end
+
+        Button.InputBegan:Connect(function(Input)
+
+            if
+                Input.UserInputType
+                == Enum.UserInputType.MouseButton1
+
+                or
+
+                Input.UserInputType
+                == Enum.UserInputType.Touch
+            then
+
+                Dragging = true
+
+                Moved = false
+
+                DragStart =
+                    Input.Position
+
+                StartPosition =
+                    Button.Position
+
+                Input.Changed:Connect(function()
+
+                    if
+                        Input.UserInputState
+                        == Enum.UserInputState.End
+                    then
+
+                        Dragging = false
+
+                    end
+
+                end)
+
+            end
+
+        end)
+
+        Button.InputChanged:Connect(function(Input)
+
+            if
+                Input.UserInputType
+                == Enum.UserInputType.MouseMovement
+
+                or
+
+                Input.UserInputType
+                == Enum.UserInputType.Touch
+            then
+
+                DragInput = Input
+
+            end
+
+        end)
+
+        local DragConnection =
+            UserInputService.InputChanged:Connect(function(Input)
+
+                if
+                    Input == DragInput
+                    and Dragging
+                then
+
+                    UpdateDrag(Input)
+
+                end
+
+            end)
+
+        --==================================================
+        -- BUTTON ANIMATION
+        --==================================================
+
+        Button.MouseButton1Down:Connect(function()
+
+            TweenService:Create(
+                Button,
+                TweenInfo.new(
+                    0.08,
+                    Enum.EasingStyle.Quad,
+                    Enum.EasingDirection.Out
+                ),
+                {
+                    Size = PressSize,
+                    BackgroundTransparency = 0.25,
+                    Rotation = -2
+                }
+            ):Play()
+
+            TweenService:Create(
+                Stroke,
+                TweenInfo.new(0.08),
+                {
+                    Thickness = 3,
+                    Transparency = 0
+                }
+            ):Play()
+
+            TweenService:Create(
+                Highlight,
+                TweenInfo.new(0.08),
+                {
+                    BackgroundTransparency = 0
+                }
+            ):Play()
+
+        end)
+
+        Button.MouseButton1Up:Connect(function()
+
+            TweenService:Create(
+                Button,
+                TweenInfo.new(
+                    0.22,
+                    Enum.EasingStyle.Back,
+                    Enum.EasingDirection.Out
+                ),
+                {
+                    Size = NormalSize,
+                    BackgroundTransparency = 0.42,
+                    Rotation = 0
+                }
+            ):Play()
+
+            TweenService:Create(
+                Stroke,
+                TweenInfo.new(0.22),
+                {
+                    Thickness = 2,
+                    Transparency = 0.12
+                }
+            ):Play()
+
+            TweenService:Create(
+                Highlight,
+                TweenInfo.new(0.22),
+                {
+                    BackgroundTransparency = 0.3
+                }
+            ):Play()
+
+        end)
+
+        --==================================================
+        -- SHOOT
+        --==================================================
+
+        Button.MouseButton1Click:Connect(function()
+
+            if Moved then
+
+                Moved = false
+
+                return
+
+            end
+
+            local Character =
+                LocalPlayer.Character
+
+            if not Character then
+                return
+            end
+
+            local Humanoid =
+                Character:FindFirstChildOfClass(
+                    "Humanoid"
+                )
+
+            if not Humanoid then
+                return
+            end
+
+            --==================================================
+            -- FIND GUN
+            --==================================================
+
+            local Gun =
+                Character:FindFirstChild("Gun")
+
+                or
+
+                (
+                    LocalPlayer:FindFirstChild("Backpack")
+                    and
+                    LocalPlayer.Backpack:FindFirstChild("Gun")
+                )
+
+            if not Gun then
+
+                Window:Notify({
+                    Title = "นายอำเภอ",
+                    Content = "ไม่พบปืนในตัวหรือกระเป๋า",
+                    Duration = 3
+                })
+
+                return
+            end
+
+            --==================================================
+            -- EQUIP GUN
+            --==================================================
+
+            if Gun.Parent ~= Character then
+
+                Humanoid:EquipTool(Gun)
+
+                task.wait(0.05)
+
+            end
+
+            Character =
+                LocalPlayer.Character
+
+            if not Character then
+                return
+            end
+
+            Gun =
+                Character:FindFirstChild("Gun")
+
+            if not Gun then
+                return
+            end
+
+            --==================================================
+            -- FIND SHOOT REMOTE
+            --==================================================
+
+            local Shoot =
+                Gun:FindFirstChild("Shoot")
+
+                or
+
+                getNil(
+                    "Shoot",
+                    "RemoteEvent"
+                )
+
+            if not Shoot then
+
+                Window:Notify({
+                    Title = "นายอำเภอ",
+                    Content = "ไม่พบระบบยิง",
+                    Duration = 3
+                })
+
+                return
+            end
+
+            --==================================================
+            -- FIND MURDERER
+            --==================================================
+
+            local Murderer =
+                FindMurderer()
+
+            if not Murderer
+                or not Murderer.Character
+            then
+
+                Window:Notify({
+                    Title = "นายอำเภอ",
+                    Content = "ไม่พบฆาตกรในห้อง",
+                    Duration = 3
+                })
+
+                return
+            end
+
+            --==================================================
+            -- TARGET
+            --==================================================
+
+            local TargetPart =
+                Murderer.Character:FindFirstChild("Head")
+
+                or
+
+                Murderer.Character:FindFirstChild(
+                    "HumanoidRootPart"
+                )
+
+            if not TargetPart then
+                return
+            end
+
+            local TargetPosition =
+                TargetPart.Position
+
+            --==================================================
+            -- BULLET SPAWN POSITION
+            --==================================================
+
+            local SpawnPosition =
+                TargetPosition
+                +
+                (
+                    TargetPart.CFrame.LookVector
+                    *
+                    BulletDistance
+                )
+
+            --==================================================
+            -- SHOOT CFRAME
+            --==================================================
+
+            local OriginCFrame =
+                CFrame.new(
+                    SpawnPosition,
+                    TargetPosition
+                )
+
+            local TargetPosCFrame =
+                CFrame.new(
+                    TargetPosition
+                )
+
+            --==================================================
+            -- FIRE
+            --==================================================
+
+            Shoot:FireServer(
+                OriginCFrame,
+                TargetPosCFrame
+            )
+
+            Window:Notify({
+                Title = "นายอำเภอ",
+                Content =
+                    "ยิงที่ระยะ "
+                    ..
+                    tostring(BulletDistance)
+                    ..
+                    " สตัด",
+                Duration = 3
+            })
+
+        end)
+
+        --==================================================
+        -- CLEANUP
+        --==================================================
+
+        ScreenGui.Destroying:Connect(function()
+
+            if DragConnection then
+
+                DragConnection:Disconnect()
+
+                DragConnection = nil
+
+            end
+
+        end)
+
+    end
 })
