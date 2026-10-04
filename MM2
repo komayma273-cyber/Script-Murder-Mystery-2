@@ -1,594 +1,1092 @@
--- =========================================================
--- 💠 KOMAT UNITY HUB • 5 SECOND LOADING
--- =========================================================
+--==================================================
+-- KRYVEX HUB
+-- SPACE GRAY LOADING SCREEN
+--==================================================
 
 local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
 local TweenService = game:GetService("TweenService")
 
-local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
--- ลบ Loading เก่าถ้ามี
-local Old = PlayerGui:FindFirstChild("KOMAT_Loading")
-if Old then
-    Old:Destroy()
+--==================================================
+-- REMOVE OLD LOADING
+--==================================================
+
+local OldLoading = PlayerGui:FindFirstChild("KRYVEX_Loading")
+if OldLoading then
+    OldLoading:Destroy()
 end
 
--- =========================================================
--- SCREEN GUI
--- =========================================================
+--==================================================
+-- LOADING GUI
+--==================================================
 
-local Gui = Instance.new("ScreenGui")
-Gui.Name = "KOMAT_Loading"
-Gui.IgnoreGuiInset = true
-Gui.ResetOnSpawn = false
-Gui.DisplayOrder = 999999
-Gui.Parent = PlayerGui
+local LoadingGui = Instance.new("ScreenGui")
+LoadingGui.Name = "KRYVEX_Loading"
+LoadingGui.IgnoreGuiInset = true
+LoadingGui.ResetOnSpawn = false
+LoadingGui.DisplayOrder = 999999
+LoadingGui.Parent = PlayerGui
 
--- Background
 local Background = Instance.new("Frame")
 Background.Size = UDim2.fromScale(1, 1)
-Background.BackgroundColor3 = Color3.fromRGB(3, 6, 12)
+Background.BackgroundColor3 = Color3.fromRGB(8, 9, 12)
 Background.BorderSizePixel = 0
-Background.Parent = Gui
+Background.Parent = LoadingGui
 
--- =========================================================
--- BLUE GLOW
--- =========================================================
+--==================================================
+-- STARS
+--==================================================
 
-local Glow = Instance.new("Frame")
-Glow.AnchorPoint = Vector2.new(0.5, 0.5)
-Glow.Position = UDim2.fromScale(0.5, 0.48)
-Glow.Size = UDim2.fromOffset(550, 550)
-Glow.BackgroundColor3 = Color3.fromRGB(0, 110, 255)
-Glow.BackgroundTransparency = 0.96
-Glow.BorderSizePixel = 0
-Glow.Parent = Background
+local Stars = {}
 
-local GlowCorner = Instance.new("UICorner")
-GlowCorner.CornerRadius = UDim.new(1, 0)
-GlowCorner.Parent = Glow
+for i = 1, 100 do
+    local Star = Instance.new("Frame")
 
--- Glow Animation
+    local Size = math.random(1, 3)
+
+    Star.Size = UDim2.fromOffset(Size, Size)
+
+    Star.Position = UDim2.fromScale(
+        math.random(),
+        math.random()
+    )
+
+    Star.BackgroundColor3 = Color3.fromRGB(
+        math.random(120, 210),
+        math.random(120, 210),
+        math.random(120, 210)
+    )
+
+    Star.BackgroundTransparency =
+        math.random(20, 70) / 100
+
+    Star.BorderSizePixel = 0
+    Star.Parent = Background
+
+    local Corner = Instance.new("UICorner")
+    Corner.CornerRadius = UDim.new(1, 0)
+    Corner.Parent = Star
+
+    table.insert(Stars, Star)
+end
+
+--==================================================
+-- STAR MOVEMENT
+--==================================================
+
 task.spawn(function()
-    while Gui.Parent do
-        TweenService:Create(
-            Glow,
-            TweenInfo.new(
-                1.5,
-                Enum.EasingStyle.Sine,
-                Enum.EasingDirection.InOut
-            ),
-            {
-                BackgroundTransparency = 0.91,
-                Size = UDim2.fromOffset(650, 650)
-            }
-        ):Play()
+    while LoadingGui.Parent do
 
-        task.wait(1.5)
+        local Star =
+            Stars[math.random(1, #Stars)]
 
-        TweenService:Create(
-            Glow,
-            TweenInfo.new(
-                1.5,
-                Enum.EasingStyle.Sine,
-                Enum.EasingDirection.InOut
-            ),
-            {
-                BackgroundTransparency = 0.96,
-                Size = UDim2.fromOffset(550, 550)
-            }
-        ):Play()
+        if Star and Star.Parent then
 
-        task.wait(1.5)
+            local OldPosition =
+                Star.Position
+
+            local Tween =
+                TweenService:Create(
+                    Star,
+                    TweenInfo.new(
+                        math.random(8, 16) / 10,
+                        Enum.EasingStyle.Linear
+                    ),
+                    {
+                        Position = UDim2.new(
+                            math.clamp(
+                                OldPosition.X.Scale
+                                    + math.random(-5, 5) / 100,
+                                0,
+                                1
+                            ),
+                            0,
+                            math.clamp(
+                                OldPosition.Y.Scale
+                                    + math.random(2, 8) / 100,
+                                0,
+                                1
+                            ),
+                            0
+                        ),
+                        BackgroundTransparency = 0.05
+                    }
+                )
+
+            Tween:Play()
+
+            task.delay(1.5, function()
+                if Star and Star.Parent then
+                    TweenService:Create(
+                        Star,
+                        TweenInfo.new(0.5),
+                        {
+                            BackgroundTransparency = 0.7
+                        }
+                    ):Play()
+                end
+            end)
+        end
+
+        task.wait(0.08)
     end
 end)
 
--- =========================================================
--- MAIN CARD
--- =========================================================
+--==================================================
+-- CENTER CIRCLE
+--==================================================
 
-local Card = Instance.new("Frame")
-Card.AnchorPoint = Vector2.new(0.5, 0.5)
-Card.Position = UDim2.fromScale(0.5, 0.5)
-Card.Size = UDim2.fromOffset(370, 260)
-Card.BackgroundColor3 = Color3.fromRGB(8, 13, 23)
-Card.BackgroundTransparency = 0.04
-Card.BorderSizePixel = 0
-Card.Parent = Background
+local Circle = Instance.new("Frame")
+Circle.Size = UDim2.fromOffset(130, 130)
+Circle.Position = UDim2.fromScale(0.5, 0.43)
+Circle.AnchorPoint = Vector2.new(0.5, 0.5)
+Circle.BackgroundColor3 = Color3.fromRGB(18, 19, 23)
+Circle.BackgroundTransparency = 0.15
+Circle.BorderSizePixel = 0
+Circle.Parent = Background
 
-local CardCorner = Instance.new("UICorner")
-CardCorner.CornerRadius = UDim.new(0, 24)
-CardCorner.Parent = Card
+local CircleCorner = Instance.new("UICorner")
+CircleCorner.CornerRadius = UDim.new(1, 0)
+CircleCorner.Parent = Circle
 
-local CardStroke = Instance.new("UIStroke")
-CardStroke.Thickness = 1.5
-CardStroke.Color = Color3.fromRGB(0, 140, 255)
-CardStroke.Transparency = 0.15
-CardStroke.Parent = Card
+local CircleStroke = Instance.new("UIStroke")
+CircleStroke.Color = Color3.fromRGB(110, 115, 125)
+CircleStroke.Thickness = 2
+CircleStroke.Transparency = 0.15
+CircleStroke.Parent = Circle
 
--- =========================================================
--- SPINNING RING
--- =========================================================
+--==================================================
+-- ROTATING RING
+--==================================================
 
 local Ring = Instance.new("Frame")
-Ring.AnchorPoint = Vector2.new(0.5, 0)
-Ring.Position = UDim2.fromScale(0.5, 0.08)
-Ring.Size = UDim2.fromOffset(70, 70)
+Ring.Size = UDim2.fromOffset(155, 155)
+Ring.Position = UDim2.fromScale(0.5, 0.43)
+Ring.AnchorPoint = Vector2.new(0.5, 0.5)
 Ring.BackgroundTransparency = 1
-Ring.Parent = Card
-
-local RingStroke = Instance.new("UIStroke")
-RingStroke.Thickness = 3
-RingStroke.Color = Color3.fromRGB(0, 170, 255)
-RingStroke.Transparency = 0.15
-RingStroke.Parent = Ring
+Ring.BorderSizePixel = 0
+Ring.Parent = Background
 
 local RingCorner = Instance.new("UICorner")
 RingCorner.CornerRadius = UDim.new(1, 0)
 RingCorner.Parent = Ring
 
+local RingStroke = Instance.new("UIStroke")
+RingStroke.Color = Color3.fromRGB(75, 80, 90)
+RingStroke.Thickness = 1
+RingStroke.Transparency = 0.3
+RingStroke.Parent = Ring
+
 task.spawn(function()
-    while Gui.Parent do
-        Ring.Rotation = Ring.Rotation + 8
-        task.wait(0.02)
+    while LoadingGui.Parent do
+        Ring.Rotation += 1
+        task.wait()
     end
 end)
 
--- =========================================================
--- KOMAT LOGO
--- =========================================================
+--==================================================
+-- TITLE
+--==================================================
 
-local Logo = Instance.new("TextLabel")
-Logo.AnchorPoint = Vector2.new(0.5, 0)
-Logo.Position = UDim2.fromScale(0.5, 0.105)
-Logo.Size = UDim2.fromOffset(300, 42)
-Logo.BackgroundTransparency = 1
-Logo.Text = "KOMAT"
-Logo.TextColor3 = Color3.fromRGB(115, 215, 255)
-Logo.TextSize = 30
-Logo.Font = Enum.Font.GothamBlack
-Logo.TextStrokeTransparency = 0.65
-Logo.TextStrokeColor3 = Color3.fromRGB(0, 110, 255)
-Logo.Parent = Card
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, 0, 0, 45)
+Title.Position = UDim2.fromScale(0.5, 0.55)
+Title.AnchorPoint = Vector2.new(0.5, 0)
+Title.BackgroundTransparency = 1
+Title.Text = "KRYVEX"
+Title.TextColor3 = Color3.fromRGB(225, 225, 230)
+Title.TextSize = 30
+Title.Font = Enum.Font.GothamBold
+Title.Parent = Background
 
--- =========================================================
--- HUB NAME
--- =========================================================
+local Subtitle = Instance.new("TextLabel")
+Subtitle.Size = UDim2.new(1, 0, 0, 25)
+Subtitle.Position = UDim2.fromScale(0.5, 0.615)
+Subtitle.AnchorPoint = Vector2.new(0.5, 0)
+Subtitle.BackgroundTransparency = 1
+Subtitle.Text = "INITIALIZING HUB"
+Subtitle.TextColor3 = Color3.fromRGB(125, 130, 140)
+Subtitle.TextSize = 11
+Subtitle.Font = Enum.Font.GothamMedium
+Subtitle.Parent = Background
 
-local Hub = Instance.new("TextLabel")
-Hub.AnchorPoint = Vector2.new(0.5, 0)
-Hub.Position = UDim2.fromScale(0.5, 0.285)
-Hub.Size = UDim2.fromOffset(320, 25)
-Hub.BackgroundTransparency = 1
-Hub.Text = "UNITY HUB"
-Hub.TextColor3 = Color3.fromRGB(230, 240, 255)
-Hub.TextSize = 16
-Hub.Font = Enum.Font.GothamBold
-Hub.Parent = Card
+--==================================================
+-- LOADING BAR
+--==================================================
 
--- =========================================================
+local BarBackground = Instance.new("Frame")
+BarBackground.Size = UDim2.fromOffset(240, 4)
+BarBackground.Position = UDim2.fromScale(0.5, 0.70)
+BarBackground.AnchorPoint = Vector2.new(0.5, 0.5)
+BarBackground.BackgroundColor3 = Color3.fromRGB(35, 37, 43)
+BarBackground.BorderSizePixel = 0
+BarBackground.Parent = Background
+
+local BarCorner = Instance.new("UICorner")
+BarCorner.CornerRadius = UDim.new(1, 0)
+BarCorner.Parent = BarBackground
+
+local Bar = Instance.new("Frame")
+Bar.Size = UDim2.new(0, 0, 1, 0)
+Bar.BackgroundColor3 = Color3.fromRGB(165, 170, 180)
+Bar.BorderSizePixel = 0
+Bar.Parent = BarBackground
+
+local BarFillCorner = Instance.new("UICorner")
+BarFillCorner.CornerRadius = UDim.new(1, 0)
+BarFillCorner.Parent = Bar
+
+--==================================================
 -- STATUS
--- =========================================================
+--==================================================
 
 local Status = Instance.new("TextLabel")
+Status.Size = UDim2.new(1, 0, 0, 20)
+Status.Position = UDim2.fromScale(0.5, 0.73)
 Status.AnchorPoint = Vector2.new(0.5, 0)
-Status.Position = UDim2.fromScale(0.5, 0.405)
-Status.Size = UDim2.fromOffset(330, 24)
 Status.BackgroundTransparency = 1
-Status.Text = "INITIALIZING..."
-Status.TextColor3 = Color3.fromRGB(140, 175, 205)
-Status.TextSize = 12
-Status.Font = Enum.Font.GothamMedium
-Status.Parent = Card
+Status.Text = "Loading..."
+Status.TextColor3 = Color3.fromRGB(100, 105, 115)
+Status.TextSize = 10
+Status.Font = Enum.Font.Gotham
+Status.Parent = Background
 
--- =========================================================
--- PROGRESS BAR
--- =========================================================
-
-local ProgressBack = Instance.new("Frame")
-ProgressBack.AnchorPoint = Vector2.new(0.5, 0)
-ProgressBack.Position = UDim2.fromScale(0.5, 0.54)
-ProgressBack.Size = UDim2.fromOffset(300, 8)
-ProgressBack.BackgroundColor3 = Color3.fromRGB(22, 31, 45)
-ProgressBack.BorderSizePixel = 0
-ProgressBack.Parent = Card
-
-local ProgressBackCorner = Instance.new("UICorner")
-ProgressBackCorner.CornerRadius = UDim.new(1, 0)
-ProgressBackCorner.Parent = ProgressBack
-
-local Progress = Instance.new("Frame")
-Progress.Size = UDim2.new(0, 0, 1, 0)
-Progress.BackgroundColor3 = Color3.fromRGB(0, 160, 255)
-Progress.BorderSizePixel = 0
-Progress.Parent = ProgressBack
-
-local ProgressCorner = Instance.new("UICorner")
-ProgressCorner.CornerRadius = UDim.new(1, 0)
-ProgressCorner.Parent = Progress
-
--- =========================================================
--- PERCENT
--- =========================================================
-
-local Percent = Instance.new("TextLabel")
-Percent.AnchorPoint = Vector2.new(0.5, 0)
-Percent.Position = UDim2.fromScale(0.5, 0.60)
-Percent.Size = UDim2.fromOffset(100, 22)
-Percent.BackgroundTransparency = 1
-Percent.Text = "0%"
-Percent.TextColor3 = Color3.fromRGB(90, 200, 255)
-Percent.TextSize = 12
-Percent.Font = Enum.Font.GothamBold
-Percent.Parent = Card
-
--- =========================================================
--- SYSTEM ONLINE
--- =========================================================
-
-local Online = Instance.new("TextLabel")
-Online.AnchorPoint = Vector2.new(0.5, 0)
-Online.Position = UDim2.fromScale(0.5, 0.72)
-Online.Size = UDim2.fromOffset(250, 22)
-Online.BackgroundTransparency = 1
-Online.Text = "● SYSTEM INITIALIZING"
-Online.TextColor3 = Color3.fromRGB(70, 130, 170)
-Online.TextSize = 10
-Online.Font = Enum.Font.GothamBold
-Online.Parent = Card
-
--- =========================================================
--- VERSION
--- =========================================================
-
-local Version = Instance.new("TextLabel")
-Version.AnchorPoint = Vector2.new(0.5, 1)
-Version.Position = UDim2.fromScale(0.5, 0.94)
-Version.Size = UDim2.fromOffset(300, 18)
-Version.BackgroundTransparency = 1
-Version.Text = "KOMAT UNITY HUB • MM2"
-Version.TextColor3 = Color3.fromRGB(65, 85, 110)
-Version.TextSize = 9
-Version.Font = Enum.Font.Gotham
-Version.Parent = Card
-
--- =========================================================
+--==================================================
 -- 5 SECOND LOADING
--- =========================================================
+--==================================================
 
-local Steps = {
-    {
-        Text = "กำลังเริ่มต้นระบบ KOMAT...",
-        Percent = 10
-    },
-    {
-        Text = "กำลังโหลด KOMAT UI...",
-        Percent = 30
-    },
-    {
-        Text = "กำลังโหลดระบบ MM2...",
-        Percent = 50
-    },
-    {
-        Text = "กำลังเตรียมระบบฟาร์ม...",
-        Percent = 70
-    },
-    {
-        Text = "กำลังเตรียมระบบ ESP...",
-        Percent = 85
-    },
-    {
-        Text = "กำลังเปิดใช้งาน HUB...",
-        Percent = 95
-    },
-    {
-        Text = "SYSTEM ONLINE",
-        Percent = 100
-    }
+local StatusTexts = {
+    "Initializing...",
+    "Loading modules...",
+    "Preparing interface...",
+    "Syncing systems...",
+    "KRYVEX HUB READY"
 }
 
-local TotalTime = 5
-local StepTime = TotalTime / #Steps
+for i = 1, 5 do
 
-for _, Step in ipairs(Steps) do
+    Status.Text = StatusTexts[i]
 
-    Status.Text = Step.Text
-
-    if Step.Percent == 100 then
-        Online.Text = "● SYSTEM ONLINE"
-        Online.TextColor3 = Color3.fromRGB(70, 255, 180)
-    else
-        Online.Text = "● SYSTEM INITIALIZING"
-        Online.TextColor3 = Color3.fromRGB(70, 130, 170)
-    end
-
-    TweenService:Create(
-        Progress,
+    local BarTween = TweenService:Create(
+        Bar,
         TweenInfo.new(
-            StepTime,
-            Enum.EasingStyle.Quart,
+            1,
+            Enum.EasingStyle.Quad,
             Enum.EasingDirection.Out
         ),
         {
             Size = UDim2.new(
-                Step.Percent / 100,
+                i / 5,
                 0,
                 1,
                 0
             )
         }
-    ):Play()
+    )
 
-    local Current =
-        tonumber(
-            string.match(
-                Percent.Text,
-                "%d+"
-            )
-        ) or 0
+    BarTween:Play()
 
-    local Difference = Step.Percent - Current
-
-    if Difference > 0 then
-        for i = 1, Difference do
-            Percent.Text =
-                tostring(Current + i) .. "%"
-
-            task.wait(
-                StepTime / Difference
-            )
-        end
-    end
+    task.wait(1)
 end
 
--- =========================================================
--- FINISHED
--- =========================================================
+--==================================================
+-- FADE OUT
+--==================================================
 
-task.wait(0.4)
+for _, Object in ipairs(
+    Background:GetDescendants()
+) do
 
--- Fade
-local FadeTime = 0.55
+    if Object:IsA("GuiObject") then
 
-for _, Object in ipairs({
-    Background,
-    Card,
-    Logo,
-    Hub,
-    Status,
-    ProgressBack,
-    Percent,
-    Online,
-    Version,
-    Glow
-}) do
+        TweenService:Create(
+            Object,
+            TweenInfo.new(0.45),
+            {
+                BackgroundTransparency = 1
+            }
+        ):Play()
 
-    local Goal = {}
+    end
 
     if Object:IsA("TextLabel") then
-        Goal.TextTransparency = 1
-    elseif Object:IsA("Frame") then
-        Goal.BackgroundTransparency = 1
+
+        TweenService:Create(
+            Object,
+            TweenInfo.new(0.45),
+            {
+                TextTransparency = 1
+            }
+        ):Play()
+
     end
 
-    TweenService:Create(
-        Object,
-        TweenInfo.new(
-            FadeTime,
-            Enum.EasingStyle.Quad,
-            Enum.EasingDirection.Out
-        ),
-        Goal
-    ):Play()
+    if Object:IsA("UIStroke") then
+
+        TweenService:Create(
+            Object,
+            TweenInfo.new(0.45),
+            {
+                Transparency = 1
+            }
+        ):Play()
+
+    end
 end
 
-TweenService:Create(
-    CardStroke,
-    TweenInfo.new(FadeTime),
-    {
-        Transparency = 1
-    }
-):Play()
+task.wait(0.5)
 
-TweenService:Create(
-    RingStroke,
-    TweenInfo.new(FadeTime),
-    {
-        Transparency = 1
-    }
-):Play()
+LoadingGui:Destroy()
 
-task.wait(FadeTime + 0.1)
-
-Gui:Destroy()
-
--- =========================================================
--- LOAD KOMAT UI
--- =========================================================
-
+--==================================================
+-- KRYVEX HUB
+--==================================================
 
 local KOMAT = loadstring(game:HttpGet(
-    "https://pastebin.com/raw/YT5pQXBL"
+    "https://pastebin.com/raw/Yne2Pj4g"
 ))()
 
 local Window = KOMAT:CreateWindow({
     Title = "MM2",
-    Subtitle = "KOMAT UNITY HUB"
+    Subtitle = "KRYVEX HUB"
 })
 
-local SettingsTab = Window:CreateTab("ตั้งค่า")
-local PlayerTab = Window:CreateTab("ผู้เล่น")
-local TeleportTab = Window:CreateTab("วาร์ป")
-local MurderTab = Window:CreateTab("ฆาตกร")
-local SheriffTab = Window:CreateTab("นายอำเภอ")
-local FarmTab = Window:CreateTab("ฟาร์ม")
-local VisualTab = Window:CreateTab("มองผู้เล่น")
-local TrollTab = Window:CreateTab("เกรียน")
+--==================================================
+-- TABS
+--==================================================
 
+local SettingsTab =
+    Window:CreateTab("ตั้งค่า", "settings")
 
+local PlayerTab =
+    Window:CreateTab("ผู้เล่น", "users")
 
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
+local TeleportTab =
+    Window:CreateTab("วาร์ป", "map-pin")
 
-PlayerTab:CreateSection("การเคลื่อนที่")
+local MurderTab =
+    Window:CreateTab("ฆาตกร", "sword")
+
+local SheriffTab =
+    Window:CreateTab("นายอำเภอ", "crosshair")
+
+local FarmTab =
+    Window:CreateTab("ฟาร์ม", "coins")
+
+local VisualTab =
+    Window:CreateTab("มองผู้เล่น", "eye")
+
+local TrollTab =
+    Window:CreateTab("เกรียน", "ghost")
+
 
 -- =========================================================
--- 🏃 MOVEMENT SETTINGS
+-- SHERIFF SYSTEM
 -- =========================================================
 
-local SavedWalkSpeed = 16
-local SavedJumpPower = 50
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
 
-local function ApplyMovementSettings(Character)
+local ShootDistance = 1.5
+local ShowShootMarker = true
+local ShootMarker = nil
+
+local function getNil(Name, ClassName)
+    if not getnilinstances then
+        return nil
+    end
+
+    for _, Object in ipairs(getnilinstances()) do
+        if Object.ClassName == ClassName
+        and Object.Name == Name then
+            return Object
+        end
+    end
+
+    return nil
+end
+
+local function FindMurderer()
+    for _, Player in ipairs(Players:GetPlayers()) do
+        if Player ~= LocalPlayer then
+
+            local Character = Player.Character
+            local Backpack = Player:FindFirstChild("Backpack")
+
+            if Character and Character:FindFirstChild("Knife") then
+                return Player
+            end
+
+            if Backpack and Backpack:FindFirstChild("Knife") then
+                return Player
+            end
+        end
+    end
+
+    return nil
+end
+
+local function RemoveShootMarker()
+    if ShootMarker then
+        ShootMarker:Destroy()
+        ShootMarker = nil
+    end
+end
+
+local function UpdateShootMarker()
+
+    if not ShowShootMarker then
+        RemoveShootMarker()
+        return
+    end
+
+    local Murderer = FindMurderer()
+
+    if not Murderer or not Murderer.Character then
+        RemoveShootMarker()
+        return
+    end
+
+    local Target =
+        Murderer.Character:FindFirstChild("Head")
+        or Murderer.Character:FindFirstChild("HumanoidRootPart")
+
+    if not Target then
+        RemoveShootMarker()
+        return
+    end
+
+    if not ShootMarker then
+
+        ShootMarker = Instance.new("Part")
+        ShootMarker.Name = "KRYVEX_ShootPosition"
+        ShootMarker.Shape = Enum.PartType.Ball
+        ShootMarker.Size = Vector3.new(0.7, 0.7, 0.7)
+        ShootMarker.Material = Enum.Material.Neon
+        ShootMarker.Color = Color3.fromRGB(255, 70, 70)
+        ShootMarker.Transparency = 0.2
+
+        ShootMarker.Anchored = true
+        ShootMarker.CanCollide = false
+        ShootMarker.CanTouch = false
+        ShootMarker.CanQuery = false
+        ShootMarker.CastShadow = false
+
+        ShootMarker.Parent = workspace
+    end
+
+    local Position =
+        Target.Position +
+        (Target.CFrame.LookVector * ShootDistance)
+
+    ShootMarker.Position = Position
+end
+
+task.spawn(function()
+    while task.wait() do
+        if ShowShootMarker then
+            UpdateShootMarker()
+        end
+    end
+end)
+
+local function ShootMurderer()
+
+    local Character = LocalPlayer.Character
+
+    if not Character then
+        return
+    end
 
     local Humanoid =
-        Character:WaitForChild("Humanoid", 10)
+        Character:FindFirstChildOfClass("Humanoid")
 
     if not Humanoid then
         return
     end
 
-    Humanoid.WalkSpeed = SavedWalkSpeed
-    Humanoid.JumpPower = SavedJumpPower
+    local Gun =
+        Character:FindFirstChild("Gun")
 
-end
+    if not Gun then
 
--- =========================================================
--- 🏃 WALK SPEED
--- =========================================================
+        local Backpack =
+            LocalPlayer:FindFirstChild("Backpack")
 
-PlayerTab:CreateSlider({
-
-    Name = "ความเร็ววิ่ง",
-
-    Min = 16,
-    Max = 200,
-
-    Default = 16,
-
-    Callback = function(Value)
-
-        SavedWalkSpeed = Value
-
-        local Character =
-            LocalPlayer.Character
-
-        local Humanoid =
-            Character
-            and Character:FindFirstChildOfClass("Humanoid")
-
-        if Humanoid then
-            Humanoid.WalkSpeed = Value
+        if Backpack then
+            Gun = Backpack:FindFirstChild("Gun")
         end
-
     end
 
-})
+    if not Gun then
 
--- =========================================================
--- 🦘 JUMP POWER
--- =========================================================
+        Window:Notify({
+            Title = "นายอำเภอ",
+            Content = "ไม่พบ Gun",
+            Duration = 3
+        })
 
-PlayerTab:CreateSlider({
-
-    Name = "พลังการกระโดด",
-
-    Min = 50,
-    Max = 200,
-
-    Default = 50,
-
-    Callback = function(Value)
-
-        SavedJumpPower = Value
-
-        local Character =
-            LocalPlayer.Character
-
-        local Humanoid =
-            Character
-            and Character:FindFirstChildOfClass("Humanoid")
-
-        if Humanoid then
-            Humanoid.JumpPower = Value
-        end
-
+        return
     end
 
-})
+    if Gun.Parent ~= Character then
+        Humanoid:EquipTool(Gun)
+        task.wait(0.05)
+    end
 
--- =========================================================
--- 🔄 REAPPLY AFTER RESPAWN
--- =========================================================
+    Character = LocalPlayer.Character
 
-LocalPlayer.CharacterAdded:Connect(function(Character)
+    if not Character then
+        return
+    end
 
-    task.wait(0.2)
+    Gun = Character:FindFirstChild("Gun")
 
-    ApplyMovementSettings(Character)
+    if not Gun then
+        return
+    end
 
-end)
+    local Shoot = Gun:FindFirstChild("Shoot")
 
--- Apply to current character
-if LocalPlayer.Character then
+    if not Shoot then
+        Shoot = getNil("Shoot", "RemoteEvent")
+    end
 
-    task.spawn(function()
+    if not Shoot then
 
-        ApplyMovementSettings(
-            LocalPlayer.Character
+        Window:Notify({
+            Title = "นายอำเภอ",
+            Content = "ไม่พบ Shoot Remote",
+            Duration = 3
+        })
+
+        return
+    end
+
+    local Murderer = FindMurderer()
+
+    if not Murderer or not Murderer.Character then
+
+        Window:Notify({
+            Title = "นายอำเภอ",
+            Content = "ไม่พบฆาตกร",
+            Duration = 3
+        })
+
+        return
+    end
+
+    local Target =
+        Murderer.Character:FindFirstChild("Head")
+        or Murderer.Character:FindFirstChild("HumanoidRootPart")
+
+    if not Target then
+        return
+    end
+
+    local TargetPosition = Target.Position
+
+    local SpawnPosition =
+        TargetPosition +
+        (Target.CFrame.LookVector * ShootDistance)
+
+    local OriginCFrame =
+        CFrame.new(
+            SpawnPosition,
+            TargetPosition
         )
 
-    end)
+    local TargetCFrame =
+        CFrame.new(TargetPosition)
 
+    Shoot:FireServer(
+        OriginCFrame,
+        TargetCFrame
+    )
+
+    Window:Notify({
+        Title = "นายอำเภอ",
+        Content =
+            "ยิงฆาตกรแล้ว • ระยะ "
+            .. string.format("%.1f", ShootDistance)
+            .. " studs",
+        Duration = 3
+    })
 end
 
-VisualTab:CreateSection("ระบบมองผู้เล่น")
 
-local MurdererESP = false
-local SheriffESP = false
+-- =========================================================
+-- SHERIFF TAB
+-- =========================================================
+
+SheriffTab:CreateSection("ระบบยิงฆาตกร")
+
+SheriffTab:CreateSlider({
+    Name = "ระยะยิงจากฆาตกร",
+    Min = 1.5,
+    Max = 15,
+    Default = 1.5,
+
+    Callback = function(Value)
+        ShootDistance = Value
+        UpdateShootMarker()
+    end
+})
+
+SheriffTab:CreateToggle({
+    Name = "แสดงจุดยิง",
+    Default = true,
+
+    Callback = function(Value)
+
+        ShowShootMarker = Value
+
+        if not Value then
+            RemoveShootMarker()
+        else
+            UpdateShootMarker()
+        end
+    end
+})
+
+SheriffTab:CreateButton({
+    Name = "กดยิงฆาตกร",
+
+    Callback = function()
+        ShootMurderer()
+    end
+})
+
+
+-- =========================================================
+-- FLOATING SHOOT BUTTON
+-- =========================================================
+
+SheriffTab:CreateToggle({
+    Name = "ปุ่มยิงฆาตกรแบบลอย",
+    Default = false,
+
+    Callback = function(Value)
+
+        local PlayerGui =
+            LocalPlayer:WaitForChild("PlayerGui")
+
+        local OldGui =
+            PlayerGui:FindFirstChild(
+                "KRYVEX_CrosshairButton"
+            )
+
+        if OldGui then
+            OldGui:Destroy()
+        end
+
+        if not Value then
+            return
+        end
+
+        local ScreenGui =
+            Instance.new("ScreenGui")
+
+        ScreenGui.Name =
+            "KRYVEX_CrosshairButton"
+
+        ScreenGui.ResetOnSpawn = false
+        ScreenGui.IgnoreGuiInset = true
+        ScreenGui.ZIndexBehavior =
+            Enum.ZIndexBehavior.Sibling
+
+        ScreenGui.Parent = PlayerGui
+
+        local Button =
+            Instance.new("TextButton")
+
+        Button.Name = "CrosshairButton"
+        Button.Size = UDim2.fromOffset(68, 68)
+
+        Button.Position =
+            UDim2.new(
+                0.5,
+                -34,
+                0.82,
+                0
+            )
+
+        Button.BackgroundColor3 =
+            Color3.fromRGB(45, 45, 50)
+
+        Button.BackgroundTransparency = 0.08
+        Button.BorderSizePixel = 0
+        Button.Text = ""
+        Button.AutoButtonColor = false
+        Button.Active = true
+        Button.ZIndex = 10
+
+        Button.Parent = ScreenGui
+
+        local Corner = Instance.new("UICorner")
+        Corner.CornerRadius = UDim.new(0, 12)
+        Corner.Parent = Button
+
+        local Stroke = Instance.new("UIStroke")
+        Stroke.Thickness = 2
+        Stroke.Color =
+            Color3.fromRGB(110, 110, 115)
+        Stroke.Transparency = 0.15
+        Stroke.Parent = Button
+
+        local Crosshair =
+            Instance.new("Frame")
+
+        Crosshair.AnchorPoint =
+            Vector2.new(0.5, 0.5)
+
+        Crosshair.Position =
+            UDim2.fromScale(0.5, 0.5)
+
+        Crosshair.Size =
+            UDim2.fromOffset(36, 36)
+
+        Crosshair.BackgroundTransparency = 1
+        Crosshair.BorderSizePixel = 0
+        Crosshair.ZIndex = 11
+        Crosshair.Parent = Button
+
+        local CrossStroke =
+            Instance.new("UIStroke")
+
+        CrossStroke.Thickness = 2
+        CrossStroke.Color =
+            Color3.fromRGB(215, 215, 220)
+
+        CrossStroke.Transparency = 0.05
+        CrossStroke.Parent = Crosshair
+
+        local Dot =
+            Instance.new("Frame")
+
+        Dot.AnchorPoint =
+            Vector2.new(0.5, 0.5)
+
+        Dot.Position =
+            UDim2.fromScale(0.5, 0.5)
+
+        Dot.Size =
+            UDim2.fromOffset(5, 5)
+
+        Dot.BackgroundColor3 =
+            Color3.fromRGB(230, 230, 235)
+
+        Dot.BorderSizePixel = 0
+        Dot.ZIndex = 13
+        Dot.Parent = Button
+
+        local DotCorner =
+            Instance.new("UICorner")
+
+        DotCorner.CornerRadius =
+            UDim.new(1, 0)
+
+        DotCorner.Parent = Dot
+
+        local function CreateLine(
+            Name,
+            Position,
+            Size
+        )
+
+            local Line =
+                Instance.new("Frame")
+
+            Line.Name = Name
+            Line.AnchorPoint =
+                Vector2.new(0.5, 0.5)
+
+            Line.Position = Position
+            Line.Size = Size
+
+            Line.BackgroundColor3 =
+                Color3.fromRGB(215, 215, 220)
+
+            Line.BorderSizePixel = 0
+            Line.ZIndex = 12
+            Line.Parent = Button
+
+            local LineCorner =
+                Instance.new("UICorner")
+
+            LineCorner.CornerRadius =
+                UDim.new(1, 0)
+
+            LineCorner.Parent = Line
+        end
+
+        CreateLine(
+            "Top",
+            UDim2.fromScale(0.5, 0.22),
+            UDim2.fromOffset(2, 9)
+        )
+
+        CreateLine(
+            "Bottom",
+            UDim2.fromScale(0.5, 0.78),
+            UDim2.fromOffset(2, 9)
+        )
+
+        CreateLine(
+            "Left",
+            UDim2.fromScale(0.22, 0.5),
+            UDim2.fromOffset(9, 2)
+        )
+
+        CreateLine(
+            "Right",
+            UDim2.fromScale(0.78, 0.5),
+            UDim2.fromOffset(9, 2)
+        )
+
+        -- =============================================
+        -- DRAG
+        -- =============================================
+
+        local NormalSize =
+            UDim2.fromOffset(68, 68)
+
+        local PressSize =
+            UDim2.fromOffset(63, 63)
+
+        local Dragging = false
+        local DragStart = nil
+        local StartPosition = nil
+        local DragInput = nil
+        local Moved = false
+
+        local function UpdateDrag(Input)
+
+            if not DragStart
+            or not StartPosition then
+                return
+            end
+
+            local Delta =
+                Input.Position - DragStart
+
+            if math.abs(Delta.X) > 6
+            or math.abs(Delta.Y) > 6 then
+                Moved = true
+            end
+
+            Button.Position =
+                UDim2.new(
+                    StartPosition.X.Scale,
+                    StartPosition.X.Offset + Delta.X,
+
+                    StartPosition.Y.Scale,
+                    StartPosition.Y.Offset + Delta.Y
+                )
+        end
+
+        Button.InputBegan:Connect(function(Input)
+
+            if Input.UserInputType ==
+                Enum.UserInputType.MouseButton1
+
+            or Input.UserInputType ==
+                Enum.UserInputType.Touch then
+
+                Dragging = true
+                Moved = false
+
+                DragStart = Input.Position
+                StartPosition = Button.Position
+
+                Input.Changed:Connect(function()
+
+                    if Input.UserInputState ==
+                        Enum.UserInputState.End then
+
+                        Dragging = false
+                    end
+                end)
+            end
+        end)
+
+        Button.InputChanged:Connect(function(Input)
+
+            if Input.UserInputType ==
+                Enum.UserInputType.MouseMovement
+
+            or Input.UserInputType ==
+                Enum.UserInputType.Touch then
+
+                DragInput = Input
+            end
+        end)
+
+        local DragConnection =
+            UserInputService.InputChanged:Connect(
+                function(Input)
+
+                    if Input == DragInput
+                    and Dragging then
+
+                        UpdateDrag(Input)
+                    end
+                end
+            )
+
+        Button.MouseButton1Down:Connect(function()
+
+            TweenService:Create(
+                Button,
+                TweenInfo.new(
+                    0.08,
+                    Enum.EasingStyle.Quad,
+                    Enum.EasingDirection.Out
+                ),
+                {
+                    Size = PressSize,
+                    BackgroundColor3 =
+                        Color3.fromRGB(65, 65, 70),
+                    Rotation = -2
+                }
+            ):Play()
+
+            TweenService:Create(
+                Stroke,
+                TweenInfo.new(0.08),
+                {
+                    Thickness = 3,
+                    Transparency = 0
+                }
+            ):Play()
+
+            TweenService:Create(
+                CrossStroke,
+                TweenInfo.new(0.08),
+                {
+                    Thickness = 3
+                }
+            ):Play()
+        end)
+
+        Button.MouseButton1Up:Connect(function()
+
+            TweenService:Create(
+                Button,
+                TweenInfo.new(
+                    0.22,
+                    Enum.EasingStyle.Back,
+                    Enum.EasingDirection.Out
+                ),
+                {
+                    Size = NormalSize,
+                    BackgroundColor3 =
+                        Color3.fromRGB(45, 45, 50),
+                    Rotation = 0
+                }
+            ):Play()
+
+            TweenService:Create(
+                Stroke,
+                TweenInfo.new(0.22),
+                {
+                    Thickness = 2,
+                    Transparency = 0.15
+                }
+            ):Play()
+
+            TweenService:Create(
+                CrossStroke,
+                TweenInfo.new(0.22),
+                {
+                    Thickness = 2
+                }
+            ):Play()
+        end)
+
+        Button.MouseButton1Click:Connect(function()
+
+            if Moved then
+                Moved = false
+                return
+            end
+
+            ShootMurderer()
+        end)
+
+        ScreenGui.Destroying:Connect(function()
+
+            if DragConnection then
+                DragConnection:Disconnect()
+                DragConnection = nil
+            end
+        end)
+    end
+})
+
+-- ==========================================
+-- KRYVEX HUB - PLAYER ROLE ESP
+-- ==========================================
+
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
 local InnocentESP = false
-local GunDropESP = false
+local SheriffESP = false
+local MurdererESP = false
 
 local ESPObjects = {}
-local GunDropObjects = {}
 
-local function HasTool(Player, ToolName)
+-- หา Role ของผู้เล่น
+local function GetRole(Player)
     local Character = Player.Character
+
+    if Character then
+        local Role = Character:FindFirstChild("Role")
+        if Role and Role:IsA("StringValue") then
+            return Role.Value
+        end
+    end
+
     local Backpack = Player:FindFirstChild("Backpack")
+    if Backpack then
+        if Backpack:FindFirstChild("Knife") then
+            return "Murderer"
+        end
 
-    if Character and Character:FindFirstChild(ToolName) then
-        return true
+        if Backpack:FindFirstChild("Gun") then
+            return "Sheriff"
+        end
     end
 
-    if Backpack and Backpack:FindFirstChild(ToolName) then
-        return true
+    if Character then
+        if Character:FindFirstChild("Knife") then
+            return "Murderer"
+        end
+
+        if Character:FindFirstChild("Gun") then
+            return "Sheriff"
+        end
     end
 
-    return false
+    return "Innocent"
 end
 
-local function IsInnocent(Player)
-    return not HasTool(Player, "Knife") and not HasTool(Player, "Gun")
-end
-
+-- ลบ ESP ของผู้เล่น
 local function RemoveESP(Player)
-    local Data = ESPObjects[Player]
+    local ESP = ESPObjects[Player]
 
-    if Data then
-        if Data.Highlight then
-            Data.Highlight:Destroy()
-        end
-
-        if Data.Billboard then
-            Data.Billboard:Destroy()
-        end
-
+    if ESP then
+        ESP:Destroy()
         ESPObjects[Player] = nil
     end
 end
 
-local function CreateESP(Player, Role)
+-- สร้าง ESP
+local function CreateESP(Player)
     if Player == LocalPlayer then
         return
     end
@@ -599,328 +1097,550 @@ local function CreateESP(Player, Role)
         return
     end
 
-    local Head = Character:FindFirstChild("Head")
+    local Role = GetRole(Player)
 
-    if not Head then
-        return
+    local Enabled = false
+
+    if Role == "Murderer" and MurdererESP then
+        Enabled = true
+    elseif Role == "Sheriff" and SheriffESP then
+        Enabled = true
+    elseif Role == "Innocent" and InnocentESP then
+        Enabled = true
     end
 
-    local Color
-    local Text
-
-    if Role == "Murderer" then
-        if not MurdererESP then
-            return
-        end
-
-        if not HasTool(Player, "Knife") then
-            return
-        end
-
-        Color = Color3.fromRGB(255, 0, 0)
-        Text = "ไอ่ชั่ว"
-
-    elseif Role == "Sheriff" then
-        if not SheriffESP then
-            return
-        end
-
-        if not HasTool(Player, "Gun") then
-            return
-        end
-
-        Color = Color3.fromRGB(0, 170, 255)
-        Text = "นักปราบไอ่ชั่ว"
-
-    elseif Role == "Innocent" then
-        if not InnocentESP then
-            return
-        end
-
-        if not IsInnocent(Player) then
-            return
-        end
-
-        Color = Color3.fromRGB(0, 255, 0)
-        Text = "คนดีย์"
-
-    else
-        return
-    end
-
-    local Old = ESPObjects[Player]
-
-    if Old and Old.Role == Role and Old.Character == Character then
+    if not Enabled then
+        RemoveESP(Player)
         return
     end
 
     RemoveESP(Player)
 
     local Highlight = Instance.new("Highlight")
-    Highlight.Name = "KOMAT_" .. Role .. "ESP"
+    Highlight.Name = "KRYVEX_RoleESP"
     Highlight.Adornee = Character
-    Highlight.FillColor = Color
-    Highlight.OutlineColor = Color
-    Highlight.FillTransparency = 0.35
-    Highlight.OutlineTransparency = 0
     Highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+    Highlight.FillTransparency = 0.5
+    Highlight.OutlineTransparency = 0
+
+    if Role == "Murderer" then
+        Highlight.FillColor = Color3.fromRGB(255, 60, 60)
+        Highlight.OutlineColor = Color3.fromRGB(255, 0, 0)
+
+    elseif Role == "Sheriff" then
+        Highlight.FillColor = Color3.fromRGB(60, 140, 255)
+        Highlight.OutlineColor = Color3.fromRGB(0, 100, 255)
+
+    else
+        Highlight.FillColor = Color3.fromRGB(80, 255, 120)
+        Highlight.OutlineColor = Color3.fromRGB(0, 255, 80)
+    end
+
     Highlight.Parent = Character
-
-    local Billboard = Instance.new("BillboardGui")
-    Billboard.Name = "KOMAT_" .. Role .. "Text"
-    Billboard.Adornee = Head
-    Billboard.Size = UDim2.fromOffset(180, 40)
-    Billboard.StudsOffset = Vector3.new(0, 3, 0)
-    Billboard.AlwaysOnTop = true
-    Billboard.Parent = Head
-
-    local TextLabel = Instance.new("TextLabel")
-    TextLabel.Size = UDim2.fromScale(1, 1)
-    TextLabel.BackgroundTransparency = 1
-    TextLabel.Text = Text
-    TextLabel.TextColor3 = Color
-    TextLabel.TextStrokeTransparency = 0
-    TextLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
-    TextLabel.TextScaled = true
-    TextLabel.Font = Enum.Font.GothamBold
-    TextLabel.Parent = Billboard
-
-    ESPObjects[Player] = {
-        Highlight = Highlight,
-        Billboard = Billboard,
-        Role = Role,
-        Character = Character
-    }
+    ESPObjects[Player] = Highlight
 end
 
-local function UpdateESP()
+-- อัปเดตทั้งหมด
+local function UpdateAllESP()
     for _, Player in ipairs(Players:GetPlayers()) do
         if Player ~= LocalPlayer then
-            local HasMurderer = MurdererESP and HasTool(Player, "Knife")
-            local HasSheriff = SheriffESP and HasTool(Player, "Gun")
-            local HasInnocent = InnocentESP and IsInnocent(Player)
-
-            if HasMurderer then
-                CreateESP(Player, "Murderer")
-            elseif HasSheriff then
-                CreateESP(Player, "Sheriff")
-            elseif HasInnocent then
-                CreateESP(Player, "Innocent")
-            else
-                RemoveESP(Player)
-            end
+            CreateESP(Player)
         end
     end
 end
 
-local function RemoveGunDropESP(Object)
-    local Data = GunDropObjects[Object]
-
-    if Data then
-        if Data.Highlight then
-            Data.Highlight:Destroy()
-        end
-
-        if Data.Billboard then
-            Data.Billboard:Destroy()
-        end
-
-        GunDropObjects[Object] = nil
-    end
-end
-
-local function CreateGunDropESP(Object)
-    if not GunDropESP then
-        return
-    end
-
-    if not Object:IsA("Model") and not Object:IsA("BasePart") then
-        return
-    end
-
-    local Color = Color3.fromRGB(255, 255, 0)
-    local Adornee = Object
-    local BillboardPart = Object
-
-    if Object:IsA("Model") then
-        local Primary = Object.PrimaryPart
-
-        if not Primary then
-            Primary = Object:FindFirstChildWhichIsA("BasePart", true)
-        end
-
-        if not Primary then
-            return
-        end
-
-        BillboardPart = Primary
-    end
-
-    local Old = GunDropObjects[Object]
-
-    if Old and Old.Adornee == Adornee then
-        return
-    end
-
-    RemoveGunDropESP(Object)
-
-    local Highlight = Instance.new("Highlight")
-    Highlight.Name = "KOMAT_GunDropESP"
-    Highlight.Adornee = Adornee
-    Highlight.FillColor = Color
-    Highlight.OutlineColor = Color
-    Highlight.FillTransparency = 0.35
-    Highlight.OutlineTransparency = 0
-    Highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-    Highlight.Parent = Object
-
-    local Billboard = Instance.new("BillboardGui")
-    Billboard.Name = "KOMAT_GunDropText"
-    Billboard.Adornee = BillboardPart
-    Billboard.Size = UDim2.fromOffset(100, 40)
-    Billboard.StudsOffset = Vector3.new(0, 2.5, 0)
-    Billboard.AlwaysOnTop = true
-    Billboard.Parent = BillboardPart
-
-    local TextLabel = Instance.new("TextLabel")
-    TextLabel.Size = UDim2.fromScale(1, 1)
-    TextLabel.BackgroundTransparency = 1
-    TextLabel.Text = "ปืน"
-    TextLabel.TextColor3 = Color
-    TextLabel.TextStrokeTransparency = 0
-    TextLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
-    TextLabel.TextScaled = true
-    TextLabel.Font = Enum.Font.GothamBold
-    TextLabel.Parent = Billboard
-
-    GunDropObjects[Object] = {
-        Highlight = Highlight,
-        Billboard = Billboard,
-        Adornee = Adornee
-    }
-end
-
-local function UpdateGunDropESP()
-    if not GunDropESP then
-        for Object in pairs(GunDropObjects) do
-            RemoveGunDropESP(Object)
-        end
-        return
-    end
-
-    local Found = {}
-
-    for _, Object in ipairs(workspace:GetDescendants()) do
-        local Name = string.lower(Object.Name)
-
-        if string.find(Name, "gundrop", 1, true) then
-            if Object:IsA("Model") or Object:IsA("BasePart") then
-                Found[Object] = true
-                CreateGunDropESP(Object)
-            end
-        end
-    end
-
-    for Object in pairs(GunDropObjects) do
-        if not Found[Object] or not Object:IsDescendantOf(workspace) then
-            RemoveGunDropESP(Object)
-        end
-    end
-end
-
-VisualTab:CreateToggle({
-    Name = "มองหาฆาตกร",
-    Default = false,
-    Callback = function(Value)
-        MurdererESP = Value
-        UpdateESP()
-    end
-})
-
-VisualTab:CreateToggle({
-    Name = "มองหานายอำเภอ",
-    Default = false,
-    Callback = function(Value)
-        SheriffESP = Value
-        UpdateESP()
-    end
-})
-
+-- ปุ่มมองหาผู้บริสุทธิ์
 VisualTab:CreateToggle({
     Name = "มองหาผู้บริสุทธิ์",
     Default = false,
+
     Callback = function(Value)
         InnocentESP = Value
-        UpdateESP()
+        UpdateAllESP()
     end
 })
 
+-- ปุ่มมองหานายอำเภอ
 VisualTab:CreateToggle({
-    Name = "มองหาปืนตก",
+    Name = "มองหานายอำเภอ",
     Default = false,
+
     Callback = function(Value)
-        GunDropESP = Value
-        UpdateGunDropESP()
+        SheriffESP = Value
+        UpdateAllESP()
     end
 })
 
-local function SetupPlayer(Player)
-    if Player == LocalPlayer then
-        return
+-- ปุ่มมองหาฆาตกร
+VisualTab:CreateToggle({
+    Name = "มองหาฆาตกร",
+    Default = false,
+
+    Callback = function(Value)
+        MurdererESP = Value
+        UpdateAllESP()
     end
+})
+
+-- ผู้เล่นเข้าเซิร์ฟ
+Players.PlayerAdded:Connect(function(Player)
 
     Player.CharacterAdded:Connect(function()
-        RemoveESP(Player)
-
         task.wait(0.5)
-
-        if MurdererESP or SheriffESP or InnocentESP then
-            UpdateESP()
-        end
+        CreateESP(Player)
     end)
-end
 
-for _, Player in ipairs(Players:GetPlayers()) do
-    SetupPlayer(Player)
-end
-
-Players.PlayerAdded:Connect(function(Player)
-    SetupPlayer(Player)
-
-    task.wait(0.5)
-
-    if MurdererESP or SheriffESP or InnocentESP then
-        UpdateESP()
-    end
 end)
 
+-- ผู้เล่นรีตัว
+for _, Player in ipairs(Players:GetPlayers()) do
+
+    if Player ~= LocalPlayer then
+
+        Player.CharacterAdded:Connect(function()
+            task.wait(0.5)
+            CreateESP(Player)
+        end)
+
+    end
+
+end
+
+-- อัปเดต Role เป็นระยะ
+task.spawn(function()
+
+    while true do
+        task.wait(1)
+
+        if InnocentESP or SheriffESP or MurdererESP then
+            UpdateAllESP()
+        end
+
+    end
+
+end)
+
+-- ล้างเมื่อผู้เล่นออก
 Players.PlayerRemoving:Connect(function(Player)
     RemoveESP(Player)
 end)
 
-task.spawn(function()
-    while task.wait(0.5) do
-        if MurdererESP or SheriffESP or InnocentESP then
-            UpdateESP()
-        end
+-- =========================================================
+-- 🎯 KRYVEX HUB • AUTO SHOOT SYSTEM (SHERIFF ONLY)
+-- =========================================================
 
-        if GunDropESP then
-            UpdateGunDropESP()
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+local ShootDistance = 1.5
+local AutoShootEnabled = false
+
+-- หาตัวผู้เล่นที่เป็นฆาตกร
+local function FindMurderer()
+    for _, Player in ipairs(Players:GetPlayers()) do
+        if Player ~= LocalPlayer then
+            local Character = Player.Character
+            local Backpack = Player:FindFirstChild("Backpack")
+
+            if (Character and Character:FindFirstChild("Knife")) or (Backpack and Backpack:FindFirstChild("Knife")) then
+                return Player
+            end
+        end
+    end
+    return nil
+end
+
+-- ฟังก์ชันยิงฆาตกร
+local function ShootMurderer()
+    local Character = LocalPlayer.Character
+    if not Character then return end
+
+    -- เช็คว่าถือปืนอยู่ในมือหรือไม่
+    local Gun = Character:FindFirstChild("Gun")
+    if not Gun then return end
+
+    -- หา RemoteEvent สำหรับยิง
+    local Shoot = Gun:FindFirstChild("Shoot")
+    if not Shoot and getnilinstances then
+        for _, Object in ipairs(getnilinstances()) do
+            if Object.ClassName == "RemoteEvent" and Object.Name == "Shoot" then
+                Shoot = Object
+                break
+            end
+        end
+    end
+
+    if not Shoot then return end
+
+    -- หาตำแหน่งฆาตกร
+    local Murderer = FindMurderer()
+    if not Murderer or not Murderer.Character then return end
+
+    local Target = Murderer.Character:FindFirstChild("Head") or Murderer.Character:FindFirstChild("HumanoidRootPart")
+    if not Target then return end
+
+    -- คำนวณทิศทางและส่งคำสั่งยิง
+    local TargetPosition = Target.Position
+    local SpawnPosition = TargetPosition + (Target.CFrame.LookVector * ShootDistance)
+    local OriginCFrame = CFrame.new(SpawnPosition, TargetPosition)
+    local TargetCFrame = CFrame.new(TargetPosition)
+
+    Shoot:FireServer(OriginCFrame, TargetCFrame)
+end
+
+-- Loop ตรวจสอบการถือปืนแบบ Real-time
+task.spawn(function()
+    while task.wait(0.2) do
+        if AutoShootEnabled then
+            local Character = LocalPlayer.Character
+            -- ถือปืนอยู่ -> ยิงทันที
+            if Character and Character:FindFirstChild("Gun") then
+                ShootMurderer()
+                task.wait(0.3) -- หน่วงเวลาเล็กน้อยเพื่อไม่ให้ส่งรีโมทถี่เกินไป
+            end
         end
     end
 end)
 
-Window:Notify({
-    Title = "MM2",
-    Content = "โหลดระบบมองผู้เล่นแล้ว",
-    Duration = 3
+-- =========================================================
+-- SHERIFF TAB UI
+-- =========================================================
+SheriffTab:CreateSection("ระบบยิงฆาตกร")
+
+SheriffTab:CreateToggle({
+    Name = "ยิงฆาตกรอัตโนมัติ",
+    Default = false,
+    Callback = function(Value)
+        AutoShootEnabled = Value
+        if Value and Window and Window.Notify then
+            Window:Notify({
+                Title = "นายอำเภอ",
+                Content = "เปิดระบบยิงอัตโนมัติ (จะยิงทันทีเมื่อถือปืน)",
+                Duration = 3
+            })
+        end
+    end
 })
 
-TeleportTab:CreateSection("วาร์ปไปหา")
+-- =========================================================
+-- 🎯 KRYVEX HUB • GUN PICKUP SYSTEM (SHERIFF)
+-- =========================================================
+
+local Workspace = game:GetService("Workspace")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+local AutoGetGunEnabled = false
+local IsTeleportingGun = false
+
+-- ฟังก์ชันค้นหา GunDrop บนแมพ
+local function FindGunDrop()
+    return Workspace:FindFirstChild("GunDrop", true)
+end
+
+-- ฟังก์ชันวาร์ปไปเก็บปืนแล้ววาร์ปกลับที่เดิม
+local function TeleportToGunDrop()
+    if IsTeleportingGun then return end
+
+    local Character = LocalPlayer.Character
+    if not Character then return end
+
+    local HumanoidRootPart = Character:FindFirstChild("HumanoidRootPart")
+    if not HumanoidRootPart then return end
+
+    local GunDrop = FindGunDrop()
+    if not GunDrop then
+        if Window and Window.Notify then
+            Window:Notify({
+                Title = "นายอำเภอ",
+                Content = "ไม่พบปืนบนพื้น (No GunDrop)",
+                Duration = 3
+            })
+        end
+        return
+    end
+
+    IsTeleportingGun = true
+
+    -- บันทึกตำแหน่งเดิมก่อนวาร์ป
+    local OriginalCFrame = HumanoidRootPart.CFrame
+
+    -- วาร์ปไปที่ตำแหน่งปืน
+    HumanoidRootPart.CFrame = GunDrop.CFrame
+
+    -- หน่วงเวลาเล็กน้อยเพื่อให้ตัวละครสัมผัสและเก็บปืน
+    task.wait(0.15)
+
+    -- วาร์ปกลับมาตำแหน่งเดิม
+    if HumanoidRootPart then
+        HumanoidRootPart.CFrame = OriginalCFrame
+    end
+
+    if Window and Window.Notify then
+        Window:Notify({
+            Title = "นายอำเภอ",
+            Content = "วาร์ปไปเก็บปืนเรียบร้อย!",
+            Duration = 3
+        })
+    end
+
+    IsTeleportingGun = false
+end
+
+-- Loop สำหรับระบบเก็บปืนอัตโนมัติ
+task.spawn(function()
+    while task.wait(0.3) do
+        if AutoGetGunEnabled and not IsTeleportingGun then
+            local GunDrop = FindGunDrop()
+            -- เช็คว่ามี GunDrop บนแมพ และผู้เล่นยังไม่มีปืนในตัวหรือในเป้
+            local Character = LocalPlayer.Character
+            local Backpack = LocalPlayer:FindFirstChild("Backpack")
+
+            local HasGun = (Character and Character:FindFirstChild("Gun")) or (Backpack and Backpack:FindFirstChild("Gun"))
+
+            if GunDrop and not HasGun then
+                TeleportToGunDrop()
+            end
+        end
+    end
+end)
+
+-- =========================================================
+-- ADD TO SHERIFF TAB UI
+-- =========================================================
+SheriffTab:CreateSection("ระบบเก็บปืน")
+
+-- ปุ่มกดวาร์ปไปเก็บปืนทันที
+SheriffTab:CreateButton({
+    Name = "วาร์ปไปเก็บปืน",
+    Callback = function()
+        TeleportToGunDrop()
+    end
+})
+
+-- ปุ่มสวิตช์เปิด-ปิด เก็บปืนอัตโนมัติ
+SheriffTab:CreateToggle({
+    Name = "เก็บปืนอัตโนมัติ",
+    Default = false,
+    Callback = function(Value)
+        AutoGetGunEnabled = Value
+        if Value and Window and Window.Notify then
+            Window:Notify({
+                Title = "นายอำเภอ",
+                Content = "เปิดระบบเก็บปืนอัตโนมัติ",
+                Duration = 3
+            })
+        end
+    end
+})
+
+-- =========================================================
+-- 🎯 KRYVEX HUB • FOV AIMLOCK SYSTEM (SHERIFF)
+-- =========================================================
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
+local LocalPlayer = Players.LocalPlayer
+local Camera = Workspace.CurrentCamera
+
+local AimLockEnabled = false
+local FOVRadius = 150
+
+-- สร้างวงกลม FOV (Drawing UI)
+local FOVCircle = Drawing.new("Circle")
+FOVCircle.Visible = false
+FOVCircle.Thickness = 1.5
+FOVCircle.Color = Color3.fromRGB(150, 150, 150) -- สีเทา
+FOVCircle.Filled = false
+FOVCircle.Transparency = 0.7
+FOVCircle.NumSides = 64
+
+-- ฟังก์ชันค้นหาผู้เล่นที่เป็นฆาตกร
+local function FindMurderer()
+    for _, Player in ipairs(Players:GetPlayers()) do
+        if Player ~= LocalPlayer then
+            local Character = Player.Character
+            local Backpack = Player:FindFirstChild("Backpack")
+
+            if (Character and Character:FindFirstChild("Knife")) or (Backpack and Backpack:FindFirstChild("Knife")) then
+                return Player
+            end
+        end
+    end
+    return nil
+end
+
+-- RenderStepped Loop สำหรับอัปเดตตำแหน่งวงกลมและล็อกเป้า
+RunService.RenderStepped:Connect(function()
+    -- อัปเดตขนาดและตำแหน่งของวงกลมให้อยู่กลางหน้าจอเสมอ
+    local MousePos = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
+    FOVCircle.Position = MousePos
+    FOVCircle.Radius = FOVRadius
+    FOVCircle.Visible = AimLockEnabled
+
+    if AimLockEnabled then
+        local Murderer = FindMurderer()
+        if Murderer and Murderer.Character then
+            local TargetPart = Murderer.Character:FindFirstChild("Head") or Murderer.Character:FindFirstChild("HumanoidRootPart")
+            
+            if TargetPart then
+                -- แปลงตำแหน่ง 3D ของฆาตกรเป็นตำแหน่ง 2D บนหน้าจอ
+                local ScreenPos, OnScreen = Camera:WorldToViewportPoint(TargetPart.Position)
+                
+                if OnScreen then
+                    local TargetVector = Vector2.new(ScreenPos.X, ScreenPos.Y)
+                    local DistanceFromCenter = (TargetVector - MousePos).Magnitude
+
+                    -- ตรวจสอบว่าฆาตกรอยู่ในเขตวงกลมหรือไม่
+                    if DistanceFromCenter <= FOVRadius then
+                        -- หันกล้องไปมองที่ตัวฆาตกร
+                        Camera.CFrame = CFrame.new(Camera.CFrame.Position, TargetPart.Position)
+                    end
+                end
+            end
+        end
+    end
+end)
+
+-- =========================================================
+-- ADD TO SHERIFF TAB UI
+-- =========================================================
+SheriffTab:CreateSection("ระบบล็อกเป้าเล็ง")
+
+-- ปุ่มสวิตช์เปิด-ปิด เล็งฆาตกร
+SheriffTab:CreateToggle({
+    Name = "เล็งฆาตกร",
+    Default = false,
+    Callback = function(Value)
+        AimLockEnabled = Value
+        if not Value then
+            FOVCircle.Visible = false
+        end
+    end
+})
+
+-- ปรับขนาดวงกลม FOV
+SheriffTab:CreateSlider({
+    Name = "ปรับขนาดวง",
+    Min = 50,
+    Max = 500,
+    Default = 150,
+    Increment = 5,
+    Callback = function(Value)
+        FOVRadius = Value
+    end
+})
+
+-- =========================================================
+-- 🎯 KRYVEX HUB • KILL AURA SYSTEM (MURDERER)
+-- =========================================================
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+
+local IsAuraActive = false
+
+-- ฟังก์ชันดึงและล็อกผู้เล่นทุกคนไว้ตรงหน้า
+local function ActivateKillAura()
+    if IsAuraActive then return end
+
+    local MyCharacter = LocalPlayer.Character
+    if not MyCharacter then return end
+
+    local MyHRP = MyCharacter:FindFirstChild("HumanoidRootPart")
+    if not MyHRP then return end
+
+    IsAuraActive = true
+
+    if Window and Window.Notify then
+        Window:Notify({
+            Title = "ฆาตกร",
+            Content = "ดึงผู้เล่นทั้งหมดมาไว้ตรงหน้า (2 วินาที)!",
+            Duration = 2
+        })
+    end
+
+    local StartTime = tick()
+    local LoopConnection
+
+    -- ใช้ RenderStepped เพื่อล็อกตำแหน่งผู้เล่นให้ติดอยู่ตรงหน้าเราตลอดช่วงเวลา
+    LoopConnection = RunService.RenderStepped:Connect(function()
+        -- ถ้าครบ 2 วินาทีแล้ว ให้หยุดล็อก
+        if tick() - StartTime >= 2 then
+            LoopConnection:Disconnect()
+            IsAuraActive = false
+            return
+        end
+
+        -- คำนวณตำแหน่งด้านหน้าเรา 3.5 บล็อก
+        local FrontCFrame = MyHRP.CFrame * CFrame.new(0, 0, -3.5)
+
+        for _, Player in ipairs(Players:GetPlayers()) do
+            if Player ~= LocalPlayer and Player.Character then
+                local TargetHRP = Player.Character:FindFirstChild("HumanoidRootPart")
+                local TargetHumanoid = Player.Character:FindFirstChildOfClass("Humanoid")
+
+                -- ดึงเฉพาะผู้เล่นที่ยังไม่ตาย
+                if TargetHRP and TargetHumanoid and TargetHumanoid.Health > 0 then
+                    TargetHRP.CFrame = FrontCFrame
+                end
+            end
+        end
+    end)
+end
+
+-- =========================================================
+-- ADD TO MURDER TAB UI
+-- =========================================================
+MurderTab:CreateSection("ระบบสังหาร")
+
+-- ปุ่มกดใช้ คิวออร่า
+MurderTab:CreateButton({
+    Name = "คิวออร่า",
+    Callback = function()
+        ActivateKillAura()
+    end
+})
+
+-- =========================================================
+-- KRYVEX HUB • TELEPORT SYSTEM
+-- =========================================================
+
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
 
 local SelectedPlayer = nil
+local SavedPosition = nil
 
-local function GetCharacterRoot(Player)
+-- =========================================================
+-- PLAYER LIST
+-- =========================================================
+
+local function GetPlayerNames()
+    local Names = {}
+
+    for _, Player in ipairs(Players:GetPlayers()) do
+        if Player ~= LocalPlayer then
+            table.insert(Names, Player.Name)
+        end
+    end
+
+    table.sort(Names)
+
+    if #Names == 0 then
+        table.insert(Names, "ไม่มีผู้เล่น")
+    end
+
+    return Names
+end
+
+-- =========================================================
+-- FIND CHARACTER ROOT
+-- =========================================================
+
+local function GetRoot(Player)
     if not Player then
         return nil
     end
@@ -934,31 +1654,67 @@ local function GetCharacterRoot(Player)
     return Character:FindFirstChild("HumanoidRootPart")
 end
 
+-- =========================================================
+-- TELEPORT TO PLAYER
+-- =========================================================
+
 local function TeleportToPlayer(Player)
-    local LocalCharacter = LocalPlayer.Character
-    local TargetRoot = GetCharacterRoot(Player)
+    local MyRoot = GetRoot(LocalPlayer)
+    local TargetRoot = GetRoot(Player)
 
-    if LocalCharacter and TargetRoot then
-        local LocalRoot = LocalCharacter:FindFirstChild("HumanoidRootPart")
-
-        if LocalRoot then
-            LocalRoot.CFrame = TargetRoot.CFrame * CFrame.new(0, 0, 3)
-        end
+    if not MyRoot then
+        Window:Notify({
+            Title = "วาร์ป",
+            Content = "ไม่พบตัวละครของมึง",
+            Duration = 3
+        })
+        return
     end
+
+    if not TargetRoot then
+        Window:Notify({
+            Title = "วาร์ป",
+            Content = "ไม่พบตัวละครของผู้เล่น",
+            Duration = 3
+        })
+        return
+    end
+
+    MyRoot.CFrame =
+        TargetRoot.CFrame * CFrame.new(0, 0, 3)
+
+    Window:Notify({
+        Title = "วาร์ป",
+        Content = "วาร์ปไปหา " .. Player.Name .. " แล้ว",
+        Duration = 3
+    })
 end
 
-local function FindPlayerWithTool(ToolName)
+-- =========================================================
+-- FIND ROLE
+-- =========================================================
+
+local function FindRole(RoleName)
     for _, Player in ipairs(Players:GetPlayers()) do
         if Player ~= LocalPlayer then
+
             local Character = Player.Character
             local Backpack = Player:FindFirstChild("Backpack")
 
-            if Character and Character:FindFirstChild(ToolName) then
-                return Player
-            end
+            if RoleName == "Murderer" then
 
-            if Backpack and Backpack:FindFirstChild(ToolName) then
-                return Player
+                if (Character and Character:FindFirstChild("Knife"))
+                or (Backpack and Backpack:FindFirstChild("Knife")) then
+                    return Player
+                end
+
+            elseif RoleName == "Sheriff" then
+
+                if (Character and Character:FindFirstChild("Gun"))
+                or (Backpack and Backpack:FindFirstChild("Gun")) then
+                    return Player
+                end
+
             end
         end
     end
@@ -966,134 +1722,104 @@ local function FindPlayerWithTool(ToolName)
     return nil
 end
 
-local function FindGunDrop()
-    for _, Object in ipairs(workspace:GetDescendants()) do
-        if string.find(string.lower(Object.Name), "gundrop", 1, true) then
-            if Object:IsA("BasePart") then
-                return Object
-            end
+-- =========================================================
+-- TELEPORT TO ROLE
+-- =========================================================
 
-            if Object:IsA("Model") then
-                local Part = Object.PrimaryPart
+local function TeleportToRole(RoleName)
 
-                if not Part then
-                    Part = Object:FindFirstChildWhichIsA("BasePart", true)
-                end
+    local Target = FindRole(RoleName)
 
-                if Part then
-                    return Part
-                end
-            end
-        end
+    if not Target then
+        Window:Notify({
+            Title = "วาร์ป",
+            Content = "ไม่พบผู้เล่นบทบาทนี้",
+            Duration = 3
+        })
+        return
     end
 
-    return nil
+    TeleportToPlayer(Target)
 end
 
-TeleportTab:CreateButton({
-    Name = "วาร์ปไปหาฆาตกร",
-    Callback = function()
-        local Murderer = FindPlayerWithTool("Knife")
+-- =========================================================
+-- SAVE POSITION
+-- =========================================================
 
-        if Murderer then
-            TeleportToPlayer(Murderer)
+local function SavePosition()
 
-            Window:Notify({
-                Title = "วาร์ป",
-                Content = "วาร์ปไปหาฆาตกรแล้ว",
-                Duration = 3
-            })
-        else
-            Window:Notify({
-                Title = "วาร์ป",
-                Content = "ไม่พบฆาตกร",
-                Duration = 3
-            })
-        end
+    local Root = GetRoot(LocalPlayer)
+
+    if not Root then
+        Window:Notify({
+            Title = "วาร์ป",
+            Content = "ไม่พบตำแหน่งตัวละคร",
+            Duration = 3
+        })
+        return
     end
-})
 
-TeleportTab:CreateButton({
-    Name = "วาร์ปไปหานายอำเภอ",
-    Callback = function()
-        local Sheriff = FindPlayerWithTool("Gun")
+    SavedPosition = Root.CFrame
 
-        if Sheriff then
-            TeleportToPlayer(Sheriff)
-
-            Window:Notify({
-                Title = "วาร์ป",
-                Content = "วาร์ปไปหานายอำเภอแล้ว",
-                Duration = 3
-            })
-        else
-            Window:Notify({
-                Title = "วาร์ป",
-                Content = "ไม่พบนายอำเภอ",
-                Duration = 3
-            })
-        end
-    end
-})
-
-TeleportTab:CreateButton({
-    Name = "วาร์ปไปหาปืน",
-    Callback = function()
-        local GunDrop = FindGunDrop()
-
-        if GunDrop then
-            local Character = LocalPlayer.Character
-            local Root = Character and Character:FindFirstChild("HumanoidRootPart")
-
-            if Root then
-                Root.CFrame = GunDrop.CFrame * CFrame.new(0, 3, 0)
-
-                Window:Notify({
-                    Title = "วาร์ป",
-                    Content = "วาร์ปไปหาปืนแล้ว",
-                    Duration = 3
-                })
-            end
-        else
-            Window:Notify({
-                Title = "วาร์ป",
-                Content = "ไม่พบปืนตก",
-                Duration = 3
-            })
-        end
-    end
-})
-
-TeleportTab:CreateSection("เลือกผู้เล่น")
-
-local PlayerOptions = {}
-
-for _, Player in ipairs(Players:GetPlayers()) do
-    if Player ~= LocalPlayer then
-        table.insert(PlayerOptions, Player.Name)
-    end
+    Window:Notify({
+        Title = "วาร์ป",
+        Content = "บันทึกตำแหน่งแล้ว",
+        Duration = 3
+    })
 end
+
+-- =========================================================
+-- RETURN POSITION
+-- =========================================================
+
+local function ReturnPosition()
+
+    local Root = GetRoot(LocalPlayer)
+
+    if not Root then
+        return
+    end
+
+    if not SavedPosition then
+        Window:Notify({
+            Title = "วาร์ป",
+            Content = "ยังไม่มีตำแหน่งที่บันทึก",
+            Duration = 3
+        })
+        return
+    end
+
+    Root.CFrame = SavedPosition
+
+    Window:Notify({
+        Title = "วาร์ป",
+        Content = "กลับตำแหน่งที่บันทึกแล้ว",
+        Duration = 3
+    })
+end
+
+-- =========================================================
+-- UI
+-- =========================================================
+
+TeleportTab:CreateSection("วาร์ปไปผู้เล่น")
 
 local PlayerDropdown = TeleportTab:CreateDropdown({
     Name = "เลือกผู้เล่น",
-    Options = PlayerOptions,
-    Default = PlayerOptions[1] or "ไม่มีผู้เล่น",
-    Callback = function(Value)
-        SelectedPlayer = nil
+    Options = GetPlayerNames(),
+    Default = GetPlayerNames()[1],
 
-        for _, Player in ipairs(Players:GetPlayers()) do
-            if Player ~= LocalPlayer and Player.Name == Value then
-                SelectedPlayer = Player
-                break
-            end
-        end
+    Callback = function(Value)
+        SelectedPlayer = Players:FindFirstChild(Value)
     end
 })
 
 TeleportTab:CreateButton({
     Name = "วาร์ปไปหาผู้เล่นที่เลือก",
+
     Callback = function()
-        if not SelectedPlayer or not SelectedPlayer.Parent then
+
+        if not SelectedPlayer then
             Window:Notify({
                 Title = "วาร์ป",
                 Content = "กรุณาเลือกผู้เล่นก่อน",
@@ -1102,1147 +1828,139 @@ TeleportTab:CreateButton({
             return
         end
 
-        if not GetCharacterRoot(SelectedPlayer) then
-            Window:Notify({
-                Title = "วาร์ป",
-                Content = "ผู้เล่นยังไม่มีตัวละคร",
-                Duration = 3
-            })
-            return
-        end
-
         TeleportToPlayer(SelectedPlayer)
-
-        Window:Notify({
-            Title = "วาร์ป",
-            Content = "วาร์ปไปหา " .. SelectedPlayer.Name .. " แล้ว",
-            Duration = 3
-        })
     end
 })
 
-SheriffTab:CreateSection("ระบบยิง")
+-- =========================================================
+-- ROLE TELEPORT
+-- =========================================================
 
-SheriffTab:CreateButton({
-    Name = "กดยิงฆาตกร",
+TeleportTab:CreateSection("วาร์ปตามบทบาท")
+
+TeleportTab:CreateButton({
+    Name = "วาร์ปไปหานายอำเภอ",
+
     Callback = function()
-        local Character = LocalPlayer.Character
-        if not Character then
-            return
-        end
-
-        local Humanoid = Character:FindFirstChildOfClass("Humanoid")
-        if not Humanoid then
-            return
-        end
-
-        local Gun = Character:FindFirstChild("Gun")
-        local Backpack = LocalPlayer:FindFirstChild("Backpack")
-
-        if not Gun and Backpack then
-            Gun = Backpack:FindFirstChild("Gun")
-        end
-
-        if not Gun then
-            Window:Notify({
-                Title = "นายอำเภอ",
-                Content = "ไม่พบ Gun",
-                Duration = 3
-            })
-            return
-        end
-
-        if Gun.Parent ~= Character then
-            Humanoid:EquipTool(Gun)
-            task.wait(0.05)
-        end
-
-        Character = LocalPlayer.Character
-        if not Character then
-            return
-        end
-
-        Gun = Character:FindFirstChild("Gun")
-        if not Gun then
-            return
-        end
-
-        local Shoot = Gun:FindFirstChild("Shoot")
-        local Root = Character:FindFirstChild("HumanoidRootPart")
-
-        if not Shoot or not Root then
-            return
-        end
-
-        local Attachment = Root:FindFirstChild("GunRaycastAttachment")
-        if not Attachment then
-            return
-        end
-
-        local Murderer
-
-        for _, Player in ipairs(Players:GetPlayers()) do
-            if Player ~= LocalPlayer then
-                local TargetCharacter = Player.Character
-                local TargetBackpack = Player:FindFirstChild("Backpack")
-
-                if TargetCharacter and TargetCharacter:FindFirstChild("Knife") then
-                    Murderer = Player
-                    break
-                end
-
-                if TargetBackpack and TargetBackpack:FindFirstChild("Knife") then
-                    Murderer = Player
-                    break
-                end
-            end
-        end
-
-        if not Murderer or not Murderer.Character then
-            Window:Notify({
-                Title = "นายอำเภอ",
-                Content = "ไม่พบฆาตกร",
-                Duration = 3
-            })
-            return
-        end
-
-        local Target = Murderer.Character:FindFirstChild("Head")
-            or Murderer.Character:FindFirstChild("HumanoidRootPart")
-
-        if not Target then
-            return
-        end
-
-        local PredictedPosition =
-            Target.Position + Target.AssemblyLinearVelocity * 0.18
-
-        Shoot:FireServer(
-            Attachment.WorldCFrame,
-            CFrame.new(PredictedPosition)
-        )
-
-        Window:Notify({
-            Title = "นายอำเภอ",
-            Content = "ยิงฆาตกรแล้ว",
-            Duration = 3
-        })
-    end
-})
-
-local TweenService = game:GetService("TweenService")
-local UserInputService = game:GetService("UserInputService")
-
-SheriffTab:CreateToggle({
-    Name = "กดยิงฆาตกร (ปุ่มลอย)",
-    Default = false,
-    Callback = function(Value)
-
-        local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
-        local OldGui = PlayerGui:FindFirstChild("KOMAT_FloatingButton")
-
-        if OldGui then
-            OldGui:Destroy()
-        end
-
-        if not Value then
-            return
-        end
-
-        local ScreenGui = Instance.new("ScreenGui")
-        ScreenGui.Name = "KOMAT_FloatingButton"
-        ScreenGui.ResetOnSpawn = false
-        ScreenGui.IgnoreGuiInset = true
-        ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-        ScreenGui.Parent = PlayerGui
-
-        local Button = Instance.new("TextButton")
-        Button.Name = "FloatingButton"
-        Button.Size = UDim2.new(0, 145, 0, 52)
-        Button.Position = UDim2.new(0.5, -72, 0.82, 0)
-        Button.BackgroundColor3 = Color3.fromRGB(110, 195, 255)
-        Button.BackgroundTransparency = 0.42
-        Button.BorderSizePixel = 0
-        Button.Text = "ยิงฆาตกร"
-        Button.TextColor3 = Color3.fromRGB(240, 250, 255)
-        Button.TextSize = 17
-        Button.Font = Enum.Font.GothamBold
-        Button.AutoButtonColor = false
-        Button.Active = true
-        Button.ZIndex = 10
-        Button.Parent = ScreenGui
-
-        local Corner = Instance.new("UICorner")
-        Corner.CornerRadius = UDim.new(0, 9)
-        Corner.Parent = Button
-
-        local Stroke = Instance.new("UIStroke")
-        Stroke.Thickness = 2
-        Stroke.Transparency = 0.12
-        Stroke.Color = Color3.fromRGB(210, 242, 255)
-        Stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-        Stroke.Parent = Button
-
-        local Gradient = Instance.new("UIGradient")
-        Gradient.Color = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(185, 230, 255)),
-            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(100, 190, 255)),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(175, 225, 255))
-        })
-
-        Gradient.Transparency = NumberSequence.new({
-            NumberSequenceKeypoint.new(0, 0.15),
-            NumberSequenceKeypoint.new(0.5, 0.38),
-            NumberSequenceKeypoint.new(1, 0.18)
-        })
-
-        Gradient.Rotation = 25
-        Gradient.Parent = Button
-
-        local Highlight = Instance.new("Frame")
-        Highlight.Name = "Highlight"
-        Highlight.Size = UDim2.new(1, -18, 0, 2)
-        Highlight.Position = UDim2.new(0, 9, 0, 6)
-        Highlight.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-        Highlight.BackgroundTransparency = 0.3
-        Highlight.BorderSizePixel = 0
-        Highlight.ZIndex = 11
-        Highlight.Parent = Button
-
-        local HighlightCorner = Instance.new("UICorner")
-        HighlightCorner.CornerRadius = UDim.new(1, 0)
-        HighlightCorner.Parent = Highlight
-
-        local NormalSize = UDim2.new(0, 145, 0, 52)
-        local PressSize = UDim2.new(0, 137, 0, 49)
-
-        local Dragging = false
-        local DragStart = nil
-        local StartPosition = nil
-        local DragInput = nil
-        local Moved = false
-
-        local function UpdateDrag(input)
-            if not DragStart or not StartPosition then
-                return
-            end
-
-            local Delta = input.Position - DragStart
-
-            if math.abs(Delta.X) > 6 or math.abs(Delta.Y) > 6 then
-                Moved = true
-            end
-
-            Button.Position = UDim2.new(
-                StartPosition.X.Scale,
-                StartPosition.X.Offset + Delta.X,
-                StartPosition.Y.Scale,
-                StartPosition.Y.Offset + Delta.Y
-            )
-        end
-
-        Button.InputBegan:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1
-            or input.UserInputType == Enum.UserInputType.Touch then
-
-                Dragging = true
-                Moved = false
-                DragStart = input.Position
-                StartPosition = Button.Position
-
-                input.Changed:Connect(function()
-                    if input.UserInputState == Enum.UserInputState.End then
-                        Dragging = false
-                    end
-                end)
-            end
-        end)
-
-        Button.InputChanged:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseMovement
-            or input.UserInputType == Enum.UserInputType.Touch then
-
-                DragInput = input
-            end
-        end)
-
-        local DragConnection
-
-        DragConnection = UserInputService.InputChanged:Connect(function(input)
-            if input == DragInput and Dragging then
-                UpdateDrag(input)
-            end
-        end)
-
-        Button.MouseButton1Down:Connect(function()
-
-            TweenService:Create(
-                Button,
-                TweenInfo.new(
-                    0.08,
-                    Enum.EasingStyle.Quad,
-                    Enum.EasingDirection.Out
-                ),
-                {
-                    Size = PressSize,
-                    BackgroundTransparency = 0.25,
-                    Rotation = -2
-                }
-            ):Play()
-
-            TweenService:Create(
-                Stroke,
-                TweenInfo.new(0.08),
-                {
-                    Thickness = 3,
-                    Transparency = 0
-                }
-            ):Play()
-
-            TweenService:Create(
-                Highlight,
-                TweenInfo.new(0.08),
-                {
-                    BackgroundTransparency = 0
-                }
-            ):Play()
-        end)
-
-        Button.MouseButton1Up:Connect(function()
-
-            TweenService:Create(
-                Button,
-                TweenInfo.new(
-                    0.22,
-                    Enum.EasingStyle.Back,
-                    Enum.EasingDirection.Out
-                ),
-                {
-                    Size = NormalSize,
-                    BackgroundTransparency = 0.42,
-                    Rotation = 0
-                }
-            ):Play()
-
-            TweenService:Create(
-                Stroke,
-                TweenInfo.new(0.22),
-                {
-                    Thickness = 2,
-                    Transparency = 0.12
-                }
-            ):Play()
-
-            TweenService:Create(
-                Highlight,
-                TweenInfo.new(0.22),
-                {
-                    BackgroundTransparency = 0.3
-                }
-            ):Play()
-        end)
-
-        Button.MouseButton1Click:Connect(function()
-
-            if Moved then
-                Moved = false
-                return
-            end
-
-            local Character = LocalPlayer.Character
-
-            if not Character then
-                return
-            end
-
-            local Humanoid = Character:FindFirstChildOfClass("Humanoid")
-
-            if not Humanoid then
-                return
-            end
-
-            local Gun = Character:FindFirstChild("Gun")
-            local Backpack = LocalPlayer:FindFirstChild("Backpack")
-
-            if not Gun and Backpack then
-                Gun = Backpack:FindFirstChild("Gun")
-            end
-
-            if not Gun then
-                Window:Notify({
-                    Title = "นายอำเภอ",
-                    Content = "ไม่พบปืน",
-                    Duration = 3
-                })
-                return
-            end
-
-            if Gun.Parent ~= Character then
-                Humanoid:EquipTool(Gun)
-                task.wait(0.05)
-            end
-
-            Character = LocalPlayer.Character
-
-            if not Character then
-                return
-            end
-
-            Gun = Character:FindFirstChild("Gun")
-
-            if not Gun then
-                return
-            end
-
-            local Shoot = Gun:FindFirstChild("Shoot")
-            local Root = Character:FindFirstChild("HumanoidRootPart")
-
-            if not Shoot or not Root then
-                return
-            end
-
-            local Attachment = Root:FindFirstChild("GunRaycastAttachment")
-
-            if not Attachment then
-                return
-            end
-
-            local Murderer = nil
-
-            for _, Player in ipairs(Players:GetPlayers()) do
-
-                if Player ~= LocalPlayer then
-
-                    local TargetCharacter = Player.Character
-                    local TargetBackpack = Player:FindFirstChild("Backpack")
-
-                    if TargetCharacter
-                    and TargetCharacter:FindFirstChild("Knife") then
-
-                        Murderer = Player
-                        break
-                    end
-
-                    if TargetBackpack
-                    and TargetBackpack:FindFirstChild("Knife") then
-
-                        Murderer = Player
-                        break
-                    end
-                end
-            end
-
-            if not Murderer or not Murderer.Character then
-
-                Window:Notify({
-                    Title = "นายอำเภอ",
-                    Content = "ไม่พบฆาตกร",
-                    Duration = 3
-                })
-
-                return
-            end
-
-            local Target =
-                Murderer.Character:FindFirstChild("Head")
-                or Murderer.Character:FindFirstChild("HumanoidRootPart")
-
-            if not Target then
-                return
-            end
-
-            local PredictedPosition =
-                Target.Position
-                + Target.AssemblyLinearVelocity * 0.18
-
-            Shoot:FireServer(
-                Attachment.WorldCFrame,
-                CFrame.new(PredictedPosition)
-            )
-
-            Window:Notify({
-                Title = "นายอำเภอ",
-                Content = "ยิงฆาตกรแล้ว",
-                Duration = 3
-            })
-        end)
-
-        ScreenGui.Destroying:Connect(function()
-
-            if DragConnection then
-                DragConnection:Disconnect()
-                DragConnection = nil
-            end
-
-        end)
-    end
-})
-
-SheriffTab:CreateSection("ระบบเก็บปืน")
-
-local GunDropRunning = false
-local GunDropBusy = false
-
-local function FindGunDrop()
-    local Found = nil
-
-    for _, Object in ipairs(workspace:GetDescendants()) do
-        if Object.Name == "GunDrop" then
-            if Object:IsA("BasePart") then
-                Found = Object
-                break
-            elseif Object:IsA("Model") then
-                local Part = Object.PrimaryPart
-
-                if not Part then
-                    Part = Object:FindFirstChildWhichIsA("BasePart", true)
-                end
-
-                if Part then
-                    Found = Part
-                    break
-                end
-            end
-        end
-    end
-
-    return Found
-end
-
-local function CollectGun()
-    if GunDropBusy then
-        return
-    end
-
-    local Character = LocalPlayer.Character
-    if not Character then
-        return
-    end
-
-    local Root = Character:FindFirstChild("HumanoidRootPart")
-    if not Root then
-        return
-    end
-
-    local GunDrop = FindGunDrop()
-    if not GunDrop then
-        return
-    end
-
-    GunDropBusy = true
-
-    local OldCFrame = Root.CFrame
-
-    Root.CFrame = GunDrop.CFrame + Vector3.new(0, 2.5, 0)
-
-    task.wait(0.08)
-
-    Root.CFrame = OldCFrame
-
-    GunDropBusy = false
-end
-
-SheriffTab:CreateToggle({
-    Name = "ออโต้วาร์ปไปเก็บปืน",
-    Default = false,
-    Callback = function(Value)
-
-        GunDropRunning = Value
-
-        if Value then
-
-            task.spawn(function()
-
-                while GunDropRunning do
-
-                    local Character = LocalPlayer.Character
-                    local Root = Character and Character:FindFirstChild("HumanoidRootPart")
-
-                    if Root and not GunDropBusy then
-
-                        local GunDrop = FindGunDrop()
-
-                        if GunDrop then
-                            CollectGun()
-                        end
-                    end
-
-                    task.wait(0.15)
-                end
-
-            end)
-
-        end
-    end
-})
-
-SheriffTab:CreateToggle({
-    Name = "วาร์ปไปเก็บปืน (ปุ่มลอย)",
-    Default = false,
-    Callback = function(Value)
-
-        local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
-        local OldGui = PlayerGui:FindFirstChild("KOMAT_GunDropFloating")
-
-        if OldGui then
-            OldGui:Destroy()
-        end
-
-        if not Value then
-            return
-        end
-
-        local ScreenGui = Instance.new("ScreenGui")
-        ScreenGui.Name = "KOMAT_GunDropFloating"
-        ScreenGui.ResetOnSpawn = false
-        ScreenGui.IgnoreGuiInset = true
-        ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-        ScreenGui.Parent = PlayerGui
-
-        local Button = Instance.new("TextButton")
-        Button.Name = "GunDropButton"
-        Button.Size = UDim2.new(0, 145, 0, 52)
-        Button.Position = UDim2.new(0.5, -72, 0.72, 0)
-        Button.BackgroundColor3 = Color3.fromRGB(110, 195, 255)
-        Button.BackgroundTransparency = 0.42
-        Button.BorderSizePixel = 0
-        Button.Text = "เก็บปืน"
-        Button.TextColor3 = Color3.fromRGB(240, 250, 255)
-        Button.TextSize = 17
-        Button.Font = Enum.Font.GothamBold
-        Button.AutoButtonColor = false
-        Button.Active = true
-        Button.ZIndex = 10
-        Button.Parent = ScreenGui
-
-        local Corner = Instance.new("UICorner")
-        Corner.CornerRadius = UDim.new(0, 9)
-        Corner.Parent = Button
-
-        local Stroke = Instance.new("UIStroke")
-        Stroke.Thickness = 2
-        Stroke.Transparency = 0.12
-        Stroke.Color = Color3.fromRGB(210, 242, 255)
-        Stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-        Stroke.Parent = Button
-
-        local Gradient = Instance.new("UIGradient")
-        Gradient.Color = ColorSequence.new({
-            ColorSequenceKeypoint.new(
-                0,
-                Color3.fromRGB(185, 230, 255)
-            ),
-            ColorSequenceKeypoint.new(
-                0.5,
-                Color3.fromRGB(100, 190, 255)
-            ),
-            ColorSequenceKeypoint.new(
-                1,
-                Color3.fromRGB(175, 225, 255)
-            )
-        })
-
-        Gradient.Transparency = NumberSequence.new({
-            NumberSequenceKeypoint.new(0, 0.15),
-            NumberSequenceKeypoint.new(0.5, 0.38),
-            NumberSequenceKeypoint.new(1, 0.18)
-        })
-
-        Gradient.Rotation = 25
-        Gradient.Parent = Button
-
-        local Highlight = Instance.new("Frame")
-        Highlight.Name = "Highlight"
-        Highlight.Size = UDim2.new(1, -18, 0, 2)
-        Highlight.Position = UDim2.new(0, 9, 0, 6)
-        Highlight.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-        Highlight.BackgroundTransparency = 0.3
-        Highlight.BorderSizePixel = 0
-        Highlight.ZIndex = 11
-        Highlight.Parent = Button
-
-        local HighlightCorner = Instance.new("UICorner")
-        HighlightCorner.CornerRadius = UDim.new(1, 0)
-        HighlightCorner.Parent = Highlight
-
-        local NormalSize = UDim2.new(0, 145, 0, 52)
-        local PressSize = UDim2.new(0, 137, 0, 49)
-
-        local Dragging = false
-        local DragStart = nil
-        local StartPosition = nil
-        local DragInput = nil
-        local Moved = false
-
-        local function UpdateDrag(Input)
-            if not DragStart or not StartPosition then
-                return
-            end
-
-            local Delta = Input.Position - DragStart
-
-            if math.abs(Delta.X) > 6
-            or math.abs(Delta.Y) > 6 then
-                Moved = true
-            end
-
-            Button.Position = UDim2.new(
-                StartPosition.X.Scale,
-                StartPosition.X.Offset + Delta.X,
-                StartPosition.Y.Scale,
-                StartPosition.Y.Offset + Delta.Y
-            )
-        end
-
-        Button.InputBegan:Connect(function(Input)
-
-            if Input.UserInputType == Enum.UserInputType.MouseButton1
-            or Input.UserInputType == Enum.UserInputType.Touch then
-
-                Dragging = true
-                Moved = false
-                DragStart = Input.Position
-                StartPosition = Button.Position
-
-                Input.Changed:Connect(function()
-
-                    if Input.UserInputState == Enum.UserInputState.End then
-                        Dragging = false
-                    end
-
-                end)
-            end
-
-        end)
-
-        Button.InputChanged:Connect(function(Input)
-
-            if Input.UserInputType == Enum.UserInputType.MouseMovement
-            or Input.UserInputType == Enum.UserInputType.Touch then
-
-                DragInput = Input
-            end
-
-        end)
-
-        local DragConnection
-
-        DragConnection = UserInputService.InputChanged:Connect(function(Input)
-
-            if Input == DragInput and Dragging then
-                UpdateDrag(Input)
-            end
-
-        end)
-
-        Button.MouseButton1Down:Connect(function()
-
-            TweenService:Create(
-                Button,
-                TweenInfo.new(
-                    0.08,
-                    Enum.EasingStyle.Quad,
-                    Enum.EasingDirection.Out
-                ),
-                {
-                    Size = PressSize,
-                    BackgroundTransparency = 0.25,
-                    Rotation = -2
-                }
-            ):Play()
-
-            TweenService:Create(
-                Stroke,
-                TweenInfo.new(0.08),
-                {
-                    Thickness = 3,
-                    Transparency = 0
-                }
-            ):Play()
-
-            TweenService:Create(
-                Highlight,
-                TweenInfo.new(0.08),
-                {
-                    BackgroundTransparency = 0
-                }
-            ):Play()
-
-        end)
-
-        Button.MouseButton1Up:Connect(function()
-
-            TweenService:Create(
-                Button,
-                TweenInfo.new(
-                    0.22,
-                    Enum.EasingStyle.Back,
-                    Enum.EasingDirection.Out
-                ),
-                {
-                    Size = NormalSize,
-                    BackgroundTransparency = 0.42,
-                    Rotation = 0
-                }
-            ):Play()
-
-            TweenService:Create(
-                Stroke,
-                TweenInfo.new(0.22),
-                {
-                    Thickness = 2,
-                    Transparency = 0.12
-                }
-            ):Play()
-
-            TweenService:Create(
-                Highlight,
-                TweenInfo.new(0.22),
-                {
-                    BackgroundTransparency = 0.3
-                }
-            ):Play()
-
-        end)
-
-        Button.MouseButton1Click:Connect(function()
-
-            if Moved then
-                Moved = false
-                return
-            end
-
-            CollectGun()
-
-        end)
-
-        ScreenGui.Destroying:Connect(function()
-
-            if DragConnection then
-                DragConnection:Disconnect()
-                DragConnection = nil
-            end
-
-        end)
-
-    end
-})
-
-local RunService = game:GetService("RunService")
-
-MurderTab:CreateSection("Hitbox")
-
-local HitboxEnabled = false
-local HitboxSize = 12
-local HitboxCircle = nil
-local HitboxConnection = nil
-local LockedTarget = nil
-
-local function RemoveHitboxCircle()
-    if HitboxCircle then
-        HitboxCircle:Destroy()
-        HitboxCircle = nil
-    end
-end
-
-local function CreateHitboxCircle()
-    RemoveHitboxCircle()
-
-    HitboxCircle = Instance.new("Part")
-    HitboxCircle.Name = "KOMAT_HitboxCircle"
-    HitboxCircle.Shape = Enum.PartType.Cylinder
-    HitboxCircle.Size = Vector3.new(0.15, HitboxSize, HitboxSize)
-    HitboxCircle.Color = Color3.fromRGB(255, 0, 0)
-    HitboxCircle.Material = Enum.Material.Neon
-    HitboxCircle.Transparency = 0.35
-    HitboxCircle.Anchored = true
-    HitboxCircle.CanCollide = false
-    HitboxCircle.CanTouch = false
-    HitboxCircle.CanQuery = false
-    HitboxCircle.CastShadow = false
-    HitboxCircle.Orientation = Vector3.new(0, 0, 90)
-    HitboxCircle.Parent = workspace
-end
-
-local function UpdateHitboxCircle()
-    if not HitboxCircle then
-        return
-    end
-
-    local Character = LocalPlayer.Character
-    if not Character then
-        return
-    end
-
-    local Root = Character:FindFirstChild("HumanoidRootPart")
-    if not Root then
-        return
-    end
-
-    HitboxCircle.Size = Vector3.new(
-        0.15,
-        HitboxSize,
-        HitboxSize
-    )
-
-    HitboxCircle.Position = Vector3.new(
-        Root.Position.X,
-        Root.Position.Y - 3,
-        Root.Position.Z
-    )
-end
-
-local function FindTargetInHitbox()
-    local Character = LocalPlayer.Character
-    if not Character then
-        return nil
-    end
-
-    local Root = Character:FindFirstChild("HumanoidRootPart")
-    if not Root then
-        return nil
-    end
-
-    local ClosestTarget = nil
-    local ClosestDistance = math.huge
-
-    for _, Player in ipairs(Players:GetPlayers()) do
-        if Player ~= LocalPlayer and Player.Character then
-
-            local EnemyRoot =
-                Player.Character:FindFirstChild("HumanoidRootPart")
-
-            local Humanoid =
-                Player.Character:FindFirstChildOfClass("Humanoid")
-
-            if EnemyRoot and Humanoid and Humanoid.Health > 0 then
-
-                local Offset = EnemyRoot.Position - Root.Position
-
-                local Distance = Vector3.new(
-                    Offset.X,
-                    0,
-                    Offset.Z
-                ).Magnitude
-
-                if Distance <= HitboxSize / 2 then
-
-                    if Distance < ClosestDistance then
-                        ClosestDistance = Distance
-                        ClosestTarget = Player
-                    end
-
-                end
-            end
-        end
-    end
-
-    return ClosestTarget
-end
-
-local function LockTargetInFront(Target)
-    if not Target then
-        return
-    end
-
-    if not Target.Character then
-        return
-    end
-
-    local Character = LocalPlayer.Character
-    if not Character then
-        return
-    end
-
-    local Root =
-        Character:FindFirstChild("HumanoidRootPart")
-
-    local EnemyRoot =
-        Target.Character:FindFirstChild("HumanoidRootPart")
-
-    local EnemyHumanoid =
-        Target.Character:FindFirstChildOfClass("Humanoid")
-
-    if not Root or not EnemyRoot or not EnemyHumanoid then
-        return
-    end
-
-    if EnemyHumanoid.Health <= 0 then
-        return
-    end
-
-    EnemyRoot.CFrame =
-        Root.CFrame *
-        CFrame.new(0, 0, -4)
-end
-
-MurderTab:CreateToggle({
-    Name = "ขยายฮิตบล็อก",
-    Default = false,
-
-    Callback = function(Value)
-
-        HitboxEnabled = Value
-        LockedTarget = nil
-
-        if HitboxConnection then
-            HitboxConnection:Disconnect()
-            HitboxConnection = nil
-        end
-
-        RemoveHitboxCircle()
-
-        if not Value then
-            return
-        end
-
-        CreateHitboxCircle()
-
-        HitboxConnection = RunService.RenderStepped:Connect(function()
-
-            if not HitboxEnabled then
-                return
-            end
-
-            local Character = LocalPlayer.Character
-            if not Character then
-                return
-            end
-
-            local Root =
-                Character:FindFirstChild("HumanoidRootPart")
-
-            if not Root then
-                return
-            end
-
-            if not HitboxCircle or not HitboxCircle.Parent then
-                CreateHitboxCircle()
-            end
-
-            UpdateHitboxCircle()
-
-            if LockedTarget then
-
-                local TargetCharacter =
-                    LockedTarget.Character
-
-                local TargetRoot =
-                    TargetCharacter and
-                    TargetCharacter:FindFirstChild("HumanoidRootPart")
-
-                local TargetHumanoid =
-                    TargetCharacter and
-                    TargetCharacter:FindFirstChildOfClass("Humanoid")
-
-                if not TargetCharacter
-                    or not TargetRoot
-                    or not TargetHumanoid
-                    or TargetHumanoid.Health <= 0 then
-
-                    LockedTarget = nil
-                end
-            end
-
-            if not LockedTarget then
-                LockedTarget = FindTargetInHitbox()
-            end
-
-            if LockedTarget then
-                LockTargetInFront(LockedTarget)
-            end
-
-        end)
-    end
-})
-
-MurderTab:CreateSlider({
-    Name = "ขนาดฮิตบล็อก",
-    Min = 6,
-    Max = 50,
-    Default = 12,
-
-    Callback = function(Value)
-
-        HitboxSize = Value
-
-        if HitboxCircle then
-            HitboxCircle.Size = Vector3.new(
-                0.15,
-                Value,
-                Value
-            )
-        end
-
+        TeleportToRole("Sheriff")
     end
 })
 
 TeleportTab:CreateButton({
-    Name = "วาร์ปไปยังเเมพ",
+    Name = "วาร์ปไปหาฆาตกร",
+
     Callback = function()
-        local PlayerSpawn = nil
-
-        for _, Object in ipairs(workspace:GetDescendants()) do
-            if Object.Name == "Coin_Server" and Object:IsA("BasePart") then
-                PlayerSpawn = Object
-                break
-            end
-        end
-
-        if not PlayerSpawn then
-            Window:Notify({
-                Title = "วาร์ป",
-                Content = "ไม่พบ Part ชื่อ PlayerSpawn ทั่วแมพ",
-                Duration = 3
-            })
-            return
-        end
-
-        local Character = LocalPlayer.Character
-        local Root = Character and Character:FindFirstChild("HumanoidRootPart")
-
-        if not Root then
-            return
-        end
-
-        Root.CFrame = PlayerSpawn.CFrame + Vector3.new(0, 3, 0)
-
-        Window:Notify({
-            Title = "วาร์ป",
-            Content = "วาร์ปไป PlayerSpawn แล้ว",
-            Duration = 3
-        })
+        TeleportToRole("Murderer")
     end
 })
+
+-- =========================================================
+-- SAVE / RETURN
+-- =========================================================
+
+TeleportTab:CreateSection("ตำแหน่ง")
+
+TeleportTab:CreateButton({
+    Name = "บันทึกตำแหน่ง",
+
+    Callback = function()
+        SavePosition()
+    end
+})
+
+TeleportTab:CreateButton({
+    Name = "วาร์ปกลับตำแหน่งที่บันทึก",
+
+    Callback = function()
+        ReturnPosition()
+    end
+})
+
+-- =========================================================
+-- UPDATE PLAYER DROPDOWN
+-- =========================================================
+
+Players.PlayerAdded:Connect(function()
+    task.wait(0.5)
+
+    if PlayerDropdown and PlayerDropdown.Refresh then
+        PlayerDropdown:Refresh(GetPlayerNames())
+    end
+end)
+
+Players.PlayerRemoving:Connect(function(Player)
+
+    if SelectedPlayer == Player then
+        SelectedPlayer = nil
+    end
+
+    task.wait(0.2)
+
+    if PlayerDropdown and PlayerDropdown.Refresh then
+        PlayerDropdown:Refresh(GetPlayerNames())
+    end
+end)
+
+-- =========================================================
+-- KRYVEX HUB • LOBBY / MAP TELEPORT
+-- =========================================================
+
+local function FindObjectEverywhere(Name)
+    for _, Object in ipairs(workspace:GetDescendants()) do
+        if Object.Name == Name then
+            return Object
+        end
+    end
+
+    return nil
+end
+
+local function GetTeleportCFrame(Object)
+    if Object:IsA("BasePart") then
+        return Object.CFrame
+    end
+
+    if Object:IsA("Model") then
+        if Object.PrimaryPart then
+            return Object.PrimaryPart.CFrame
+        end
+
+        local Part = Object:FindFirstChildWhichIsA("BasePart", true)
+
+        if Part then
+            return Part.CFrame
+        end
+    end
+
+    return nil
+end
+
+-- =========================================================
+-- LOBBY
+-- =========================================================
 
 TeleportTab:CreateButton({
     Name = "วาร์ปไปล็อบบี้",
+
     Callback = function()
-        local EliteBoard = nil
 
-        for _, Object in ipairs(workspace:GetDescendants()) do
-            if Object.Name == "EliteBoard" then
-                if Object:IsA("BasePart") then
-                    EliteBoard = Object
-                    break
-                elseif Object:IsA("Model") then
-                    EliteBoard = Object.PrimaryPart
-
-                    if not EliteBoard then
-                        EliteBoard = Object:FindFirstChildWhichIsA("BasePart", true)
-                    end
-
-                    if EliteBoard then
-                        break
-                    end
-                end
-            end
-        end
+        local EliteBoard = FindObjectEverywhere("EliteBoard")
 
         if not EliteBoard then
             Window:Notify({
                 Title = "วาร์ป",
-                Content = "ไม่พบ EliteBoard ทั่วแมพ",
+                Content = "ไม่พบ EliteBoard",
+                Duration = 3
+            })
+            return
+        end
+
+        local TargetCFrame = GetTeleportCFrame(EliteBoard)
+
+        if not TargetCFrame then
+            Window:Notify({
+                Title = "วาร์ป",
+                Content = "EliteBoard ไม่มีตำแหน่งสำหรับวาร์ป",
                 Duration = 3
             })
             return
@@ -2255,7 +1973,7 @@ TeleportTab:CreateButton({
             return
         end
 
-        Root.CFrame = EliteBoard.CFrame + Vector3.new(0, 3, 0)
+        Root.CFrame = TargetCFrame + Vector3.new(0, 3, 0)
 
         Window:Notify({
             Title = "วาร์ป",
@@ -2265,171 +1983,174 @@ TeleportTab:CreateButton({
     end
 })
 
-MurderTab:CreateSection("คิวออร่า")
+-- =========================================================
+-- MAP
+-- =========================================================
 
-local QueueAuraAutoEnabled = false
-local QueueAuraConnection = nil
-local RunService = game:GetService("RunService")
+TeleportTab:CreateButton({
+    Name = "วาร์ปไปยังแมพ",
 
-local function HasLocalKnife()
-    local Character = LocalPlayer.Character
-    if not Character then
-        return false
-    end
-
-    for _, Object in ipairs(Character:GetChildren()) do
-        if Object:IsA("Tool") and string.lower(Object.Name) == "knife" then
-            return true
-        end
-    end
-
-    return false
-end
-
-local function GetRoot(Player)
-    local Character = Player.Character
-    if not Character then
-        return nil
-    end
-
-    return Character:FindFirstChild("HumanoidRootPart")
-end
-
-local function QueueAura()
-    if not HasLocalKnife() then
-        return
-    end
-
-    local MyRoot = GetRoot(LocalPlayer)
-    if not MyRoot then
-        return
-    end
-
-    local TargetCFrame = MyRoot.CFrame * CFrame.new(0, 0, -4)
-
-    for _, Player in ipairs(Players:GetPlayers()) do
-        if Player ~= LocalPlayer then
-            local TargetRoot = GetRoot(Player)
-            local Character = Player.Character
-            local Humanoid = Character and Character:FindFirstChildOfClass("Humanoid")
-
-            if TargetRoot and Humanoid and Humanoid.Health > 0 then
-                TargetRoot.CFrame = TargetCFrame
-            end
-        end
-    end
-end
-
-MurderTab:CreateButton({
-    Name = "คิวออร่า",
     Callback = function()
-        if not HasLocalKnife() then
+
+        local CoinServer = FindObjectEverywhere("Coin_Server")
+
+        if not CoinServer then
             Window:Notify({
-                Title = "คิวออร่า",
-                Content = "มึงไม่มี Knife",
+                Title = "วาร์ป",
+                Content = "ไม่พบ Coin_Server",
                 Duration = 3
             })
             return
         end
 
-        QueueAura()
+        local TargetCFrame = GetTeleportCFrame(CoinServer)
+
+        if not TargetCFrame then
+            Window:Notify({
+                Title = "วาร์ป",
+                Content = "Coin_Server ไม่มีตำแหน่งสำหรับวาร์ป",
+                Duration = 3
+            })
+            return
+        end
+
+        local Character = LocalPlayer.Character
+        local Root = Character and Character:FindFirstChild("HumanoidRootPart")
+
+        if not Root then
+            return
+        end
+
+        Root.CFrame = TargetCFrame + Vector3.new(0, 3, 0)
 
         Window:Notify({
-            Title = "คิวออร่า",
-            Content = "อัดผู้เล่นทั้งหมดไว้ด้านหน้าแล้ว",
+            Title = "วาร์ป",
+            Content = "วาร์ปไปยังแมพแล้ว",
             Duration = 3
         })
     end
 })
 
-MurderTab:CreateToggle({
-    Name = "คิวออร่าอัตโนมัติ",
-    Default = false,
-    Callback = function(Value)
-        QueueAuraAutoEnabled = Value
+-- =========================================================
+-- KRYVEX HUB • PLAYER SYSTEM
+-- =========================================================
 
-        if QueueAuraConnection then
-            QueueAuraConnection:Disconnect()
-            QueueAuraConnection = nil
-        end
-
-        if Value then
-            QueueAuraConnection = RunService.Heartbeat:Connect(function()
-                if QueueAuraAutoEnabled and HasLocalKnife() then
-                    QueueAura()
-                end
-            end)
-
-            Window:Notify({
-                Title = "คิวออร่าอัตโนมัติ",
-                Content = "เปิดแล้ว ต้องมี Knife ถึงจะทำงาน",
-                Duration = 3
-            })
-        else
-            Window:Notify({
-                Title = "คิวออร่าอัตโนมัติ",
-                Content = "ปิดระบบแล้ว",
-                Duration = 3
-            })
-        end
-    end
-})
-
-PlayerTab:CreateSection("ระบบผู้เล่น")
-
-local InfiniteJumpEnabled = false
-local NoclipEnabled = false
-local NoPlayerCollisionEnabled = false
-
-local InfiniteJumpConnection = nil
-local NoclipConnection = nil
-local NoPlayerCollisionConnection = nil
-
+local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 
-PlayerTab:CreateToggle({
-    Name = "กระโดดไม่จำกัด",
-    Default = false,
+local LocalPlayer = Players.LocalPlayer
+
+local SavedWalkSpeed = 16
+local SavedJumpPower = 50
+local SavedGravity = workspace.Gravity
+
+local NoclipEnabled = false
+local InfiniteJumpEnabled = false
+
+local NoclipConnection = nil
+local InfiniteJumpConnection = nil
+
+-- =========================================================
+-- CHARACTER
+-- =========================================================
+
+local function GetCharacter()
+    return LocalPlayer.Character
+        or LocalPlayer.CharacterAdded:Wait()
+end
+
+local function GetHumanoid()
+    local Character = LocalPlayer.Character
+    if not Character then
+        return nil
+    end
+
+    return Character:FindFirstChildOfClass("Humanoid")
+end
+
+-- =========================================================
+-- APPLY MOVEMENT
+-- =========================================================
+
+local function ApplyMovementSettings(Character)
+
+    local Humanoid =
+        Character:WaitForChild("Humanoid", 10)
+
+    if not Humanoid then
+        return
+    end
+
+    Humanoid.WalkSpeed = SavedWalkSpeed
+    Humanoid.JumpPower = SavedJumpPower
+end
+
+-- =========================================================
+-- WALK SPEED
+-- =========================================================
+
+PlayerTab:CreateSlider({
+    Name = "ความเร็ววิ่ง",
+    Min = 16,
+    Max = 200,
+    Default = 16,
+
     Callback = function(Value)
-        InfiniteJumpEnabled = Value
 
-        if InfiniteJumpConnection then
-            InfiniteJumpConnection:Disconnect()
-            InfiniteJumpConnection = nil
-        end
+        SavedWalkSpeed = Value
 
-        if Value then
-            InfiniteJumpConnection = UserInputService.JumpRequest:Connect(function()
-                if InfiniteJumpEnabled then
-                    local Character = LocalPlayer.Character
-                    local Humanoid = Character and Character:FindFirstChildOfClass("Humanoid")
+        local Humanoid = GetHumanoid()
 
-                    if Humanoid then
-                        Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-                    end
-                end
-            end)
-
-            Window:Notify({
-                Title = "กระโดดไม่จำกัด",
-                Content = "เปิดระบบแล้ว",
-                Duration = 3
-            })
-        else
-            Window:Notify({
-                Title = "กระโดดไม่จำกัด",
-                Content = "ปิดระบบแล้ว",
-                Duration = 3
-            })
+        if Humanoid then
+            Humanoid.WalkSpeed = Value
         end
     end
 })
 
-PlayerTab:CreateToggle({
-    Name = "เดินทะลุ",
-    Default = false,
+-- =========================================================
+-- JUMP POWER
+-- =========================================================
+
+PlayerTab:CreateSlider({
+    Name = "พลังการกระโดด",
+    Min = 50,
+    Max = 200,
+    Default = 50,
+
     Callback = function(Value)
+
+        SavedJumpPower = Value
+
+        local Humanoid = GetHumanoid()
+
+        if Humanoid then
+            Humanoid.JumpPower = Value
+        end
+    end
+})
+
+-- =========================================================
+-- NOCLIP
+-- =========================================================
+
+local function SetNoclip(Character, State)
+
+    for _, Object in ipairs(Character:GetDescendants()) do
+
+        if Object:IsA("BasePart") then
+            Object.CanCollide = not State
+        end
+
+    end
+end
+
+PlayerTab:CreateToggle({
+    Name = "เดินทะลุกำแพง",
+    Default = false,
+
+    Callback = function(Value)
+
         NoclipEnabled = Value
 
         if NoclipConnection then
@@ -2438,196 +2159,738 @@ PlayerTab:CreateToggle({
         end
 
         if Value then
+
             NoclipConnection = RunService.Stepped:Connect(function()
-                if not NoclipEnabled then
-                    return
-                end
 
                 local Character = LocalPlayer.Character
-                if not Character then
-                    return
+
+                if Character then
+                    SetNoclip(Character, true)
                 end
 
-                for _, Object in ipairs(Character:GetDescendants()) do
-                    if Object:IsA("BasePart") then
-                        Object.CanCollide = false
-                    end
-                end
             end)
 
-            Window:Notify({
-                Title = "เดินทะลุ",
-                Content = "เปิดระบบแล้ว",
-                Duration = 3
-            })
         else
+
             local Character = LocalPlayer.Character
 
             if Character then
-                for _, Object in ipairs(Character:GetDescendants()) do
-                    if Object:IsA("BasePart") then
-                        Object.CanCollide = true
-                    end
-                end
+                SetNoclip(Character, false)
             end
 
-            Window:Notify({
-                Title = "เดินทะลุ",
-                Content = "ปิดระบบแล้ว",
-                Duration = 3
-            })
         end
     end
 })
+
+-- =========================================================
+-- INFINITE JUMP
+-- =========================================================
 
 PlayerTab:CreateToggle({
-    Name = "ทะลุเพื่อน",
+    Name = "กระโดดไม่จำกัด",
     Default = false,
-    Callback = function(Value)
-        NoPlayerCollisionEnabled = Value
 
-        if NoPlayerCollisionConnection then
-            NoPlayerCollisionConnection:Disconnect()
-            NoPlayerCollisionConnection = nil
+    Callback = function(Value)
+
+        InfiniteJumpEnabled = Value
+
+        if InfiniteJumpConnection then
+            InfiniteJumpConnection:Disconnect()
+            InfiniteJumpConnection = nil
         end
 
         if Value then
-            NoPlayerCollisionConnection = RunService.Stepped:Connect(function()
-                if not NoPlayerCollisionEnabled then
-                    return
-                end
 
-                local MyCharacter = LocalPlayer.Character
+            InfiniteJumpConnection =
+                UserInputService.JumpRequest:Connect(function()
 
-                if not MyCharacter then
-                    return
-                end
+                    local Humanoid = GetHumanoid()
 
-                for _, Player in ipairs(Players:GetPlayers()) do
-                    if Player ~= LocalPlayer and Player.Character then
-                        for _, Object in ipairs(Player.Character:GetDescendants()) do
-                            if Object:IsA("BasePart") then
-                                Object.CanCollide = false
-                            end
-                        end
+                    if Humanoid then
+                        Humanoid:ChangeState(
+                            Enum.HumanoidStateType.Jumping
+                        )
                     end
-                end
-            end)
 
-            Window:Notify({
-                Title = "ทะลุเพื่อน",
-                Content = "เปิดระบบแล้ว",
-                Duration = 3
-            })
-        else
-            if NoPlayerCollisionConnection then
-                NoPlayerCollisionConnection:Disconnect()
-                NoPlayerCollisionConnection = nil
-            end
+                end)
 
-            Window:Notify({
-                Title = "ทะลุเพื่อน",
-                Content = "ปิดระบบแล้ว",
-                Duration = 3
-            })
         end
     end
 })
 
-local AutoShootEnabled = false
-local AutoShootConnection = nil
+-- =========================================================
+-- GRAVITY
+-- =========================================================
 
-local function HasLocalGun()
-    local Character = LocalPlayer.Character
-    if not Character then
-        return false
-    end
+PlayerTab:CreateSlider({
+    Name = "แรงโน้มถ่วง",
+    Min = 0,
+    Max = 300,
+    Default = SavedGravity,
 
-    for _, Object in ipairs(Character:GetChildren()) do
-        if Object:IsA("Tool") and string.lower(Object.Name) == "gun" then
-            return true
-        end
-    end
-
-    return false
-end
-
-local function GetMurderer()
-    for _, Player in ipairs(Players:GetPlayers()) do
-        if Player ~= LocalPlayer and Player.Character then
-            local Character = Player.Character
-
-            for _, Object in ipairs(Character:GetChildren()) do
-                if Object:IsA("Tool") and string.lower(Object.Name) == "knife" then
-                    return Player
-                end
-            end
-        end
-    end
-
-    return nil
-end
-
-SheriffTab:CreateToggle({
-    Name = "ยิงฆาตกรอัตโนมัติ",
-    Default = false,
     Callback = function(Value)
-        AutoShootEnabled = Value
 
-        if AutoShootConnection then
-            AutoShootConnection:Disconnect()
-            AutoShootConnection = nil
-        end
+        workspace.Gravity = Value
 
-        if Value then
-            AutoShootConnection = game:GetService("RunService").Heartbeat:Connect(function()
-                if not AutoShootEnabled then
-                    return
-                end
-
-                if not HasLocalGun() then
-                    return
-                end
-
-                local Murderer = GetMurderer()
-                if not Murderer then
-                    return
-                end
-
-                local Character = Murderer.Character
-                local Root = Character and Character:FindFirstChild("HumanoidRootPart")
-
-                if not Root then
-                    return
-                end
-
-                local MyCharacter = LocalPlayer.Character
-                local MyRoot = MyCharacter and MyCharacter:FindFirstChild("HumanoidRootPart")
-
-                if not MyRoot then
-                    return
-                end
-
-                MyRoot.CFrame = CFrame.lookAt(
-                    MyRoot.Position,
-                    Root.Position
-                )
-            end)
-
-            Window:Notify({
-                Title = "ยิงฆาตกรอัตโนมัติ",
-                Content = "เปิดแล้ว ต้องถือ Gun ถึงจะทำงาน",
-                Duration = 3
-            })
-        else
-            Window:Notify({
-                Title = "ยิงฆาตกรอัตโนมัติ",
-                Content = "ปิดระบบแล้ว",
-                Duration = 3
-            })
-        end
     end
 })
+
+-- =========================================================
+-- RESPAWN SUPPORT
+-- =========================================================
+
+LocalPlayer.CharacterAdded:Connect(function(Character)
+
+    task.wait(0.2)
+
+    ApplyMovementSettings(Character)
+
+    if NoclipEnabled then
+        SetNoclip(Character, true)
+    end
+
+end)
+
+-- =========================================================
+-- INITIAL APPLY
+-- =========================================================
+
+if LocalPlayer.Character then
+
+    task.spawn(function()
+        ApplyMovementSettings(LocalPlayer.Character)
+
+        if NoclipEnabled then
+            SetNoclip(LocalPlayer.Character, true)
+        end
+    end)
+
+end
+
+-- =========================================================
+-- ⚙️ KRYVEX HUB • SETTINGS / INFO
+-- =========================================================
+
+SettingsTab:CreateSection("ข้อมูล KRYVEX")
+
+SettingsTab:CreateLabel(
+    "เวอร์ชัน KRYVEX : "
+    .. tostring(KOMAT.Version or "1.0.0")
+)
+
+SettingsTab:CreateLabel(
+    "ชื่อผู้ใช้ : "
+    .. tostring(LocalPlayer.Name)
+)
+
+SettingsTab:CreateLabel(
+    "User ID : "
+    .. tostring(LocalPlayer.UserId)
+)
+
+SettingsTab:CreateLabel(
+    "ชื่อแมพ : "
+    .. tostring(game.Name)
+)
+
+SettingsTab:CreateLabel(
+    "Place ID : "
+    .. tostring(game.PlaceId)
+)
+
+SettingsTab:CreateLabel(
+    "Job ID : "
+    .. tostring(game.JobId)
+)
+
+-- =========================================================
+-- 📶 FPS / PING
+-- =========================================================
+
+local StatsService = game:GetService("Stats")
+
+local FPS = 0
+local FrameCounter = 0
+local FPSStart = tick()
+
+RunService.RenderStepped:Connect(function()
+
+    FrameCounter += 1
+
+    local Now = tick()
+
+    if Now - FPSStart >= 1 then
+
+        FPS = FrameCounter
+        FrameCounter = 0
+        FPSStart = Now
+
+    end
+
+end)
+
+local function GetPing()
+
+    local Ping = 0
+
+    pcall(function()
+
+        Ping = math.floor(
+            StatsService
+                .Network
+                .ServerStatsItem["Data Ping"]
+                :GetValue()
+        )
+
+    end)
+
+    return Ping
+
+end
+
+local PerformanceLabel =
+    SettingsTab:CreateLabel(
+        "FPS : --  |  Ping : -- ms"
+    )
+
+task.spawn(function()
+
+    while true do
+
+        task.wait(1)
+
+        if PerformanceLabel then
+
+            pcall(function()
+
+                PerformanceLabel.Text =
+                    "FPS : "
+                    .. tostring(FPS)
+                    .. "  |  Ping : "
+                    .. tostring(GetPing())
+                    .. " ms"
+
+            end)
+
+        end
+
+    end
+
+end)
+
+-- =========================================================
+-- 🖼️ PROFILE
+-- =========================================================
+
+SettingsTab:CreateSection("โปรไฟล์ผู้เล่น")
+
+SettingsTab:CreateLabel(
+    tostring(LocalPlayer.DisplayName)
+    .. "  (@"
+    .. tostring(LocalPlayer.Name)
+    .. ")"
+)
+
+-- =========================================================
+-- PROFILE CARD
+-- =========================================================
+
+local ProfileGui =
+    Instance.new("Frame")
+
+ProfileGui.Name =
+    "KRYVEX_ProfileCard"
+
+ProfileGui.Size =
+    UDim2.new(
+        1,
+        0,
+        0,
+        105
+    )
+
+ProfileGui.BackgroundColor3 =
+    Color3.fromRGB(
+        12,
+        12,
+        18
+    )
+
+ProfileGui.BorderSizePixel = 0
+
+ProfileGui.ClipsDescendants = true
+
+ProfileGui.Parent =
+    SettingsTab.Page
+
+-- =========================================================
+-- PROFILE CORNER
+-- =========================================================
+
+local ProfileCorner =
+    Instance.new("UICorner")
+
+ProfileCorner.CornerRadius =
+    UDim.new(
+        0,
+        14
+    )
+
+ProfileCorner.Parent =
+    ProfileGui
+
+-- =========================================================
+-- PROFILE STROKE
+-- =========================================================
+
+local ProfileStroke =
+    Instance.new("UIStroke")
+
+ProfileStroke.Color =
+    Color3.fromRGB(
+        120,
+        120,
+        120
+    )
+
+ProfileStroke.Thickness = 1.5
+
+ProfileStroke.Transparency = 0.2
+
+ProfileStroke.Parent =
+    ProfileGui
+
+-- =========================================================
+-- AVATAR HOLDER
+-- =========================================================
+
+local AvatarHolder =
+    Instance.new("Frame")
+
+AvatarHolder.Size =
+    UDim2.fromOffset(
+        75,
+        75
+    )
+
+AvatarHolder.Position =
+    UDim2.new(
+        0,
+        12,
+        0.5,
+        -37
+    )
+
+AvatarHolder.BackgroundColor3 =
+    Color3.fromRGB(
+        25,
+        25,
+        35
+    )
+
+AvatarHolder.BorderSizePixel = 0
+
+AvatarHolder.ZIndex = 10
+
+AvatarHolder.Parent =
+    ProfileGui
+
+local AvatarCorner =
+    Instance.new("UICorner")
+
+AvatarCorner.CornerRadius =
+    UDim.new(
+        0,
+        12
+    )
+
+AvatarCorner.Parent =
+    AvatarHolder
+
+local AvatarStroke =
+    Instance.new("UIStroke")
+
+AvatarStroke.Color =
+    Color3.fromRGB(
+        120,
+        120,
+        120
+    )
+
+AvatarStroke.Thickness = 2
+
+AvatarStroke.Parent =
+    AvatarHolder
+
+-- =========================================================
+-- AVATAR
+-- =========================================================
+
+local Avatar =
+    Instance.new("ImageLabel")
+
+Avatar.Size =
+    UDim2.new(
+        1,
+        -4,
+        1,
+        -4
+    )
+
+Avatar.Position =
+    UDim2.fromOffset(
+        2,
+        2
+    )
+
+Avatar.BackgroundTransparency = 1
+
+Avatar.Image =
+    "rbxthumb://type=AvatarHeadShot&id="
+    .. tostring(LocalPlayer.UserId)
+    .. "&w=150&h=150"
+
+Avatar.ScaleType =
+    Enum.ScaleType.Crop
+
+Avatar.ZIndex = 11
+
+Avatar.Parent =
+    AvatarHolder
+
+local AvatarImageCorner =
+    Instance.new("UICorner")
+
+AvatarImageCorner.CornerRadius =
+    UDim.new(
+        0,
+        10
+    )
+
+AvatarImageCorner.Parent =
+    Avatar
+
+-- =========================================================
+-- PROFILE NAME
+-- =========================================================
+
+local ProfileName =
+    Instance.new("TextLabel")
+
+ProfileName.Size =
+    UDim2.new(
+        1,
+        -110,
+        0,
+        25
+    )
+
+ProfileName.Position =
+    UDim2.new(
+        0,
+        100,
+        0,
+        24
+    )
+
+ProfileName.BackgroundTransparency = 1
+
+ProfileName.Text =
+    tostring(LocalPlayer.DisplayName)
+
+ProfileName.TextColor3 =
+    Color3.fromRGB(
+        255,
+        255,
+        255
+    )
+
+ProfileName.TextSize = 16
+
+ProfileName.Font =
+    Enum.Font.GothamBold
+
+ProfileName.TextXAlignment =
+    Enum.TextXAlignment.Left
+
+ProfileName.TextTruncate =
+    Enum.TextTruncate.AtEnd
+
+ProfileName.ZIndex = 10
+
+ProfileName.Parent =
+    ProfileGui
+
+-- =========================================================
+-- USERNAME
+-- =========================================================
+
+local ProfileUser =
+    Instance.new("TextLabel")
+
+ProfileUser.Size =
+    UDim2.new(
+        1,
+        -110,
+        0,
+        20
+    )
+
+ProfileUser.Position =
+    UDim2.new(
+        0,
+        100,
+        0,
+        48
+    )
+
+ProfileUser.BackgroundTransparency = 1
+
+ProfileUser.Text =
+    "@"
+    .. tostring(LocalPlayer.Name)
+
+ProfileUser.TextColor3 =
+    Color3.fromRGB(
+        160,
+        160,
+        175
+    )
+
+ProfileUser.TextSize = 12
+
+ProfileUser.Font =
+    Enum.Font.Gotham
+
+ProfileUser.TextXAlignment =
+    Enum.TextXAlignment.Left
+
+ProfileUser.ZIndex = 10
+
+ProfileUser.Parent =
+    ProfileGui
+
+-- =========================================================
+-- LIVE
+-- =========================================================
+
+local LiveLabel =
+    Instance.new("TextLabel")
+
+LiveLabel.Size =
+    UDim2.fromOffset(
+        50,
+        20
+    )
+
+LiveLabel.Position =
+    UDim2.new(
+        1,
+        -60,
+        0,
+        10
+    )
+
+LiveLabel.BackgroundTransparency = 1
+
+LiveLabel.Text =
+    "● LIVE"
+
+LiveLabel.TextColor3 =
+    Color3.fromRGB(
+        80,
+        255,
+        120
+    )
+
+LiveLabel.TextSize = 10
+
+LiveLabel.Font =
+    Enum.Font.GothamBold
+
+LiveLabel.ZIndex = 10
+
+LiveLabel.Parent =
+    ProfileGui
+
+-- =========================================================
+-- PARTICLE SYSTEM
+-- =========================================================
+
+local ParticleAlive = true
+
+local function CreateFireParticle()
+
+    if not ParticleAlive then
+        return
+    end
+
+    if not ProfileGui.Parent then
+        return
+    end
+
+    local Particle =
+        Instance.new("Frame")
+
+    local Size =
+        math.random(
+            2,
+            6
+        )
+
+    Particle.Size =
+        UDim2.fromOffset(
+            Size,
+            Size
+        )
+
+    Particle.Position =
+        UDim2.new(
+            math.random(
+                5,
+                95
+            ) / 100,
+            0,
+            1,
+            math.random(
+                -5,
+                5
+            )
+        )
+
+    Particle.BackgroundColor3 =
+        Color3.fromRGB(
+            math.random(
+                100,
+                180
+            ),
+            math.random(
+                100,
+                180
+            ),
+            math.random(
+                100,
+                180
+            )
+        )
+
+    Particle.BackgroundTransparency =
+        math.random(
+            0,
+            25
+        ) / 100
+
+    Particle.BorderSizePixel = 0
+
+    Particle.ZIndex = 3
+
+    Particle.Parent =
+        ProfileGui
+
+    local Corner =
+        Instance.new("UICorner")
+
+    Corner.CornerRadius =
+        UDim.new(
+            1,
+            0
+        )
+
+    Corner.Parent =
+        Particle
+
+    local RiseTime =
+        math.random(
+            10,
+            20
+        ) / 10
+
+    local EndX =
+        math.clamp(
+            Particle.Position.X.Scale
+            + math.random(
+                -12,
+                12
+            ) / 100,
+
+            0.02,
+            0.98
+        )
+
+    local Tween =
+        game:GetService(
+            "TweenService"
+        ):Create(
+
+            Particle,
+
+            TweenInfo.new(
+                RiseTime,
+                Enum.EasingStyle.Quad,
+                Enum.EasingDirection.Out
+            ),
+
+            {
+
+                Position =
+                    UDim2.new(
+                        EndX,
+                        0,
+                        0.05,
+                        0
+                    ),
+
+                Size =
+                    UDim2.fromOffset(
+                        math.random(
+                            1,
+                            3
+                        ),
+                        math.random(
+                            1,
+                            3
+                        )
+                    ),
+
+                BackgroundTransparency = 1
+
+            }
+
+        )
+
+    Tween:Play()
+
+    Tween.Completed:Connect(function()
+
+        if Particle then
+            Particle:Destroy()
+        end
+
+    end)
+
+end
+
+-- =========================================================
+-- PARTICLE LOOP
+-- =========================================================
+
+task.spawn(function()
+
+    while ParticleAlive
+    and ProfileGui.Parent do
+
+        CreateFireParticle()
+
+        task.wait(
+            math.random(
+                8,
+                16
+            ) / 100
+        )
+
+    end
+
+end)
 
 PlayerTab:CreateSection("เสกไอเทม")
 
@@ -4474,666 +4737,6 @@ LocalPlayer.CharacterAdded:Connect(function(Character)
 
 end)
 
-
--- =========================================================
--- FARM LOADED
--- =========================================================
-
-Window:Notify({
-    Title = "KOMAT FARM",
-    Content = "โหลดระบบฟาร์มทั้งหมดแล้ว",
-    Duration = 3
-})
-
-SettingsTab:CreateSection("📦 ข้อมูล KOMAT")
-
-SettingsTab:CreateLabel(
-    "📦 เวอร์ชัน KOMAT : "
-    .. tostring(KOMAT.Version or "1.0.0")
-)
-
-SettingsTab:CreateLabel(
-    "👤 ชื่อผู้ใช้ : "
-    .. tostring(LocalPlayer.Name)
-)
-
-SettingsTab:CreateLabel(
-    "🆔 User ID : "
-    .. tostring(LocalPlayer.UserId)
-)
-
-SettingsTab:CreateLabel(
-    "🎮 ชื่อแมพ : "
-    .. tostring(game.Name)
-)
-
-SettingsTab:CreateLabel(
-    "🆔 Place ID : "
-    .. tostring(game.PlaceId)
-)
-
-SettingsTab:CreateLabel(
-    "🖥️ Job ID : "
-    .. tostring(game.JobId)
-)
-
--- =========================================================
--- 📶 FPS / PING
--- =========================================================
-
-SettingsTab:CreateSection("📶 ประสิทธิภาพ")
-
-local StatsService = game:GetService("Stats")
-
-local FPS = 0
-local FrameCounter = 0
-local FPSStart = tick()
-
-RunService.RenderStepped:Connect(function()
-
-    FrameCounter += 1
-
-    local Now = tick()
-
-    if Now - FPSStart >= 1 then
-
-        FPS = FrameCounter
-        FrameCounter = 0
-        FPSStart = Now
-
-    end
-
-end)
-
-local function GetPing()
-
-    local Ping = 0
-
-    pcall(function()
-
-        Ping = math.floor(
-            StatsService
-                .Network
-                .ServerStatsItem["Data Ping"]
-                :GetValue()
-        )
-
-    end)
-
-    return Ping
-
-end
-
-local PerformanceLabel =
-    SettingsTab:CreateLabel(
-        "📶 FPS : --  |  Ping : -- ms"
-    )
-
-task.spawn(function()
-
-    while true do
-
-        task.wait(1)
-
-        if PerformanceLabel then
-
-            pcall(function()
-
-                PerformanceLabel.Text =
-                    "📶 FPS : "
-                    .. tostring(FPS)
-                    .. "  |  Ping : "
-                    .. tostring(GetPing())
-                    .. " ms"
-
-            end)
-
-        end
-
-    end
-
-end)
-
--- =========================================================
--- 🖼️ PROFILE
--- =========================================================
-
-SettingsTab:CreateSection("🖼️ โปรไฟล์ผู้เล่น")
-
-SettingsTab:CreateLabel(
-    "👤 "
-    .. tostring(LocalPlayer.DisplayName)
-    .. "  (@"
-    .. tostring(LocalPlayer.Name)
-    .. ")"
-)
-
--- =========================================================
--- 🔥 PROFILE CARD
--- =========================================================
-
-local ProfileGui = Instance.new("Frame")
-
-ProfileGui.Name = "KOMAT_ProfileCard"
-
-ProfileGui.Size =
-    UDim2.new(
-        1,
-        0,
-        0,
-        105
-    )
-
-ProfileGui.BackgroundColor3 =
-    Color3.fromRGB(
-        12,
-        12,
-        18
-    )
-
-ProfileGui.BorderSizePixel = 0
-ProfileGui.ClipsDescendants = true
-
-ProfileGui.Parent =
-    SettingsTab.Page
-
-local ProfileCorner =
-    Instance.new("UICorner")
-
-ProfileCorner.CornerRadius =
-    UDim.new(0, 14)
-
-ProfileCorner.Parent =
-    ProfileGui
-
-local ProfileStroke =
-    Instance.new("UIStroke")
-
-ProfileStroke.Color =
-    Color3.fromRGB(
-        0,
-        150,
-        255
-    )
-
-ProfileStroke.Thickness = 1.5
-ProfileStroke.Transparency = 0.2
-ProfileStroke.Parent = ProfileGui
-
--- =========================================================
--- AVATAR HOLDER
--- =========================================================
-
-local AvatarHolder =
-    Instance.new("Frame")
-
-AvatarHolder.Size =
-    UDim2.fromOffset(
-        75,
-        75
-    )
-
-AvatarHolder.Position =
-    UDim2.new(
-        0,
-        12,
-        0.5,
-        -37
-    )
-
-AvatarHolder.BackgroundColor3 =
-    Color3.fromRGB(
-        20,
-        25,
-        35
-    )
-
-AvatarHolder.BorderSizePixel = 0
-AvatarHolder.ZIndex = 10
-AvatarHolder.Parent = ProfileGui
-
-local AvatarCorner =
-    Instance.new("UICorner")
-
-AvatarCorner.CornerRadius =
-    UDim.new(0, 12)
-
-AvatarCorner.Parent =
-    AvatarHolder
-
-local AvatarStroke =
-    Instance.new("UIStroke")
-
-AvatarStroke.Color =
-    Color3.fromRGB(
-        0,
-        170,
-        255
-    )
-
-AvatarStroke.Thickness = 2
-AvatarStroke.Parent = AvatarHolder
-
--- =========================================================
--- AVATAR
--- =========================================================
-
-local Avatar =
-    Instance.new("ImageLabel")
-
-Avatar.Size =
-    UDim2.new(
-        1,
-        -4,
-        1,
-        -4
-    )
-
-Avatar.Position =
-    UDim2.fromOffset(
-        2,
-        2
-    )
-
-Avatar.BackgroundTransparency = 1
-
-Avatar.Image =
-    "rbxthumb://type=AvatarHeadShot&id="
-    .. tostring(LocalPlayer.UserId)
-    .. "&w=150&h=150"
-
-Avatar.ScaleType =
-    Enum.ScaleType.Crop
-
-Avatar.ZIndex = 11
-Avatar.Parent = AvatarHolder
-
-local AvatarImageCorner =
-    Instance.new("UICorner")
-
-AvatarImageCorner.CornerRadius =
-    UDim.new(0, 10)
-
-AvatarImageCorner.Parent =
-    Avatar
-
--- =========================================================
--- PROFILE NAME
--- =========================================================
-
-local ProfileName =
-    Instance.new("TextLabel")
-
-ProfileName.Size =
-    UDim2.new(
-        1,
-        -110,
-        0,
-        25
-    )
-
-ProfileName.Position =
-    UDim2.new(
-        0,
-        100,
-        0,
-        24
-    )
-
-ProfileName.BackgroundTransparency = 1
-
-ProfileName.Text =
-    "👤 "
-    .. tostring(LocalPlayer.DisplayName)
-
-ProfileName.TextColor3 =
-    Color3.fromRGB(
-        255,
-        255,
-        255
-    )
-
-ProfileName.TextSize = 16
-ProfileName.Font = Enum.Font.GothamBold
-ProfileName.TextXAlignment = Enum.TextXAlignment.Left
-ProfileName.TextTruncate = Enum.TextTruncate.AtEnd
-ProfileName.ZIndex = 10
-ProfileName.Parent = ProfileGui
-
--- =========================================================
--- USERNAME
--- =========================================================
-
-local ProfileUser =
-    Instance.new("TextLabel")
-
-ProfileUser.Size =
-    UDim2.new(
-        1,
-        -110,
-        0,
-        20
-    )
-
-ProfileUser.Position =
-    UDim2.new(
-        0,
-        100,
-        0,
-        48
-    )
-
-ProfileUser.BackgroundTransparency = 1
-
-ProfileUser.Text =
-    "@"
-    .. tostring(LocalPlayer.Name)
-
-ProfileUser.TextColor3 =
-    Color3.fromRGB(
-        160,
-        175,
-        195
-    )
-
-ProfileUser.TextSize = 12
-ProfileUser.Font = Enum.Font.Gotham
-ProfileUser.TextXAlignment = Enum.TextXAlignment.Left
-ProfileUser.ZIndex = 10
-ProfileUser.Parent = ProfileGui
-
--- =========================================================
--- LIVE STATUS
--- =========================================================
-
-local LiveLabel =
-    Instance.new("TextLabel")
-
-LiveLabel.Size =
-    UDim2.fromOffset(
-        70,
-        20
-    )
-
-LiveLabel.Position =
-    UDim2.new(
-        1,
-        -78,
-        0,
-        10
-    )
-
-LiveLabel.BackgroundTransparency = 1
-
-LiveLabel.Text =
-    "● LIVE"
-
-LiveLabel.TextColor3 =
-    Color3.fromRGB(
-        80,
-        255,
-        150
-    )
-
-LiveLabel.TextSize = 10
-LiveLabel.Font = Enum.Font.GothamBold
-LiveLabel.ZIndex = 10
-LiveLabel.Parent = ProfileGui
-
--- =========================================================
--- 🔥 BLUE PARTICLES
--- =========================================================
-
-local ParticleAlive = true
-
-local function CreateProfileParticle()
-
-    if not ParticleAlive then
-        return
-    end
-
-    if not ProfileGui.Parent then
-        return
-    end
-
-    local Particle =
-        Instance.new("Frame")
-
-    local Size =
-        math.random(
-            2,
-            5
-        )
-
-    Particle.Size =
-        UDim2.fromOffset(
-            Size,
-            Size
-        )
-
-    Particle.Position =
-        UDim2.new(
-            math.random(
-                5,
-                95
-            ) / 100,
-            0,
-            1,
-            math.random(
-                -5,
-                5
-            )
-        )
-
-    Particle.BackgroundColor3 =
-        Color3.fromRGB(
-            math.random(50, 120),
-            math.random(150, 255),
-            255
-        )
-
-    Particle.BackgroundTransparency =
-        math.random(
-            10,
-            45
-        ) / 100
-
-    Particle.BorderSizePixel = 0
-    Particle.ZIndex = 3
-    Particle.Parent = ProfileGui
-
-    local Corner =
-        Instance.new("UICorner")
-
-    Corner.CornerRadius =
-        UDim.new(
-            1,
-            0
-        )
-
-    Corner.Parent =
-        Particle
-
-    local RiseTime =
-        math.random(
-            10,
-            20
-        ) / 10
-
-    local StartX =
-        Particle.Position.X.Scale
-
-    local EndX =
-        math.clamp(
-            StartX
-            + math.random(
-                -12,
-                12
-            ) / 100,
-            0.02,
-            0.98
-        )
-
-    local Tween =
-        TweenService:Create(
-
-            Particle,
-
-            TweenInfo.new(
-                RiseTime,
-                Enum.EasingStyle.Quad,
-                Enum.EasingDirection.Out
-            ),
-
-            {
-                Position =
-                    UDim2.new(
-                        EndX,
-                        0,
-                        0.05,
-                        0
-                    ),
-
-                Size =
-                    UDim2.fromOffset(
-                        1,
-                        1
-                    ),
-
-                BackgroundTransparency = 1
-            }
-
-        )
-
-    Tween:Play()
-
-    Tween.Completed:Connect(function()
-
-        if Particle then
-            Particle:Destroy()
-        end
-
-    end)
-
-end
-
-task.spawn(function()
-
-    while ParticleAlive
-    and ProfileGui.Parent do
-
-        CreateProfileParticle()
-
-        task.wait(
-            math.random(
-                8,
-                16
-            ) / 100
-        )
-
-    end
-
-end)
-
--- =========================================================
--- 🔄 REFRESH INFO
--- =========================================================
-
-SettingsTab:CreateSection("🔄 ระบบ")
-
-SettingsTab:CreateButton({
-
-    Name = "🔄 รีเฟรชข้อมูล",
-
-    Callback = function()
-
-        local Character =
-            LocalPlayer.Character
-
-        if ProfileName then
-
-            ProfileName.Text =
-                "👤 "
-                .. tostring(
-                    LocalPlayer.DisplayName
-                )
-
-        end
-
-        if ProfileUser then
-
-            ProfileUser.Text =
-                "@"
-                .. tostring(
-                    LocalPlayer.Name
-                )
-
-        end
-
-        Window:Notify({
-
-            Title = "🔄 KOMAT",
-
-            Content =
-                "รีเฟรชข้อมูลผู้เล่นแล้ว",
-
-            Duration = 2
-
-        })
-
-    end
-
-})
-
--- =========================================================
--- ℹ️ ABOUT
--- =========================================================
-
-SettingsTab:CreateSection("ℹ️ เกี่ยวกับ")
-
-SettingsTab:CreateLabel(
-    "KOMAT UNITY HUB"
-)
-
-SettingsTab:CreateLabel(
-    "Xเกรียน Edition"
-)
-
-SettingsTab:CreateLabel(
-    "ระบบ UI และเครื่องมือสำหรับ Roblox"
-)
-
-SettingsTab:CreateLabel(
-    "Status : ● ONLINE"
-)
-
--- =========================================================
--- 📋 DISCORD AUTO COPY
--- =========================================================
-
-local DiscordInvite = "https://discord.gg/ByQMjVD82"
-
--- Roblox Notification
-pcall(function()
-    game:GetService("StarterGui"):SetCore(
-        "SendNotification",
-        {
-            Title = "KOMAT UNITY HUB",
-            Text = "Discord KOMAT UNITY HUB",
-            Duration = 5
-        }
-    )
-end)
-
--- Copy Discord Invite
-pcall(function()
-    if setclipboard then
-        setclipboard(DiscordInvite)
-    elseif toclipboard then
-        toclipboard(DiscordInvite)
-    end
-end)
-
 --==============================================================
 -- เกรียน
 --==============================================================
@@ -6155,251 +5758,4 @@ ESPTab:CreateToggle({
 
     end
 
-})
-
-local TweenService = game:GetService("TweenService")
-local UserInputService = game:GetService("UserInputService")
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
-
--- ฟังก์ชันค้นหา Instance ที่ถูกซ่อนอยู่ใน Nil
-local function getNil(name, className)
-    if not getnilinstances then return nil end
-    for _, v in ipairs(getnilinstances()) do
-        if v.ClassName == className and v.Name == name then
-            return v
-        end
-    end
-    return nil
-end
-
-SheriffTab:CreateToggle({
-    Name = "กดยิงฆาตกร (ปุ่มลอย)",
-    Default = false,
-    Callback = function(Value)
-        local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")  
-        local OldGui = PlayerGui:FindFirstChild("KOMAT_FloatingButton")  
-
-        -- ลบ GUI เดิมออกถ้ามีอยู่
-        if OldGui then  
-            OldGui:Destroy()  
-        end  
-
-        if not Value then  
-            return  
-        end  
-
-        -- 1. สร้าง ScreenGui และ TextButton
-        local ScreenGui = Instance.new("ScreenGui")  
-        ScreenGui.Name = "KOMAT_FloatingButton"  
-        ScreenGui.ResetOnSpawn = false  
-        ScreenGui.IgnoreGuiInset = true  
-        ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling  
-        ScreenGui.Parent = PlayerGui  
-
-        local Button = Instance.new("TextButton")  
-        Button.Name = "FloatingButton"  
-        Button.Size = UDim2.new(0, 145, 0, 52)  
-        Button.Position = UDim2.new(0.5, -72, 0.82, 0)  
-        Button.BackgroundColor3 = Color3.fromRGB(110, 195, 255)  
-        Button.BackgroundTransparency = 0.42  
-        Button.BorderSizePixel = 0  
-        Button.Text = "ยิงฆาตกร"  
-        Button.TextColor3 = Color3.fromRGB(240, 250, 255)  
-        Button.TextSize = 17  
-        Button.Font = Enum.Font.GothamBold  
-        Button.AutoButtonColor = false  
-        Button.Active = true  
-        Button.ZIndex = 10  
-        Button.Parent = ScreenGui  
-
-        local Corner = Instance.new("UICorner")  
-        Corner.CornerRadius = UDim.new(0, 9)  
-        Corner.Parent = Button  
-
-        local Stroke = Instance.new("UIStroke")  
-        Stroke.Thickness = 2  
-        Stroke.Transparency = 0.12  
-        Stroke.Color = Color3.fromRGB(210, 242, 255)  
-        Stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border  
-        Stroke.Parent = Button  
-
-        local Gradient = Instance.new("UIGradient")  
-        Gradient.Color = ColorSequence.new({  
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(185, 230, 255)),  
-            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(100, 190, 255)),  
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(175, 225, 255))  
-        })  
-
-        Gradient.Transparency = NumberSequence.new({  
-            NumberSequenceKeypoint.new(0, 0.15),  
-            NumberSequenceKeypoint.new(0.5, 0.38),  
-            NumberSequenceKeypoint.new(1, 0.18)  
-        })  
-
-        Gradient.Rotation = 25  
-        Gradient.Parent = Button  
-
-        local Highlight = Instance.new("Frame")  
-        Highlight.Name = "Highlight"  
-        Highlight.Size = UDim2.new(1, -18, 0, 2)  
-        Highlight.Position = UDim2.new(0, 9, 0, 6)  
-        Highlight.BackgroundColor3 = Color3.fromRGB(255, 255, 255)  
-        Highlight.BackgroundTransparency = 0.3  
-        Highlight.BorderSizePixel = 0  
-        Highlight.ZIndex = 11  
-        Highlight.Parent = Button  
-
-        local HighlightCorner = Instance.new("UICorner")  
-        HighlightCorner.CornerRadius = UDim.new(1, 0)  
-        HighlightCorner.Parent = Highlight  
-
-        local NormalSize = UDim2.new(0, 145, 0, 52)  
-        local PressSize = UDim2.new(0, 137, 0, 49)  
-
-        -- 2. ระบบ Drag (ลากปุ่ม)
-        local Dragging = false  
-        local DragStart = nil  
-        local StartPosition = nil  
-        local DragInput = nil  
-        local Moved = false  
-
-        local function UpdateDrag(Input)  
-            if not DragStart or not StartPosition then return end  
-
-            local Delta = Input.Position - DragStart  
-            if math.abs(Delta.X) > 6 or math.abs(Delta.Y) > 6 then  
-                Moved = true  
-            end  
-
-            Button.Position = UDim2.new(  
-                StartPosition.X.Scale,  
-                StartPosition.X.Offset + Delta.X,  
-                StartPosition.Y.Scale,  
-                StartPosition.Y.Offset + Delta.Y  
-            )  
-        end  
-
-        Button.InputBegan:Connect(function(Input)  
-            if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then  
-                Dragging = true  
-                Moved = false  
-                DragStart = Input.Position  
-                StartPosition = Button.Position  
-
-                Input.Changed:Connect(function()  
-                    if Input.UserInputState == Enum.UserInputState.End then  
-                        Dragging = false  
-                    end  
-                end)  
-            end  
-        end)  
-
-        Button.InputChanged:Connect(function(Input)  
-            if Input.UserInputType == Enum.UserInputType.MouseMovement or Input.UserInputType == Enum.UserInputType.Touch then  
-                DragInput = Input  
-            end  
-        end)  
-
-        local DragConnection = UserInputService.InputChanged:Connect(function(Input)  
-            if Input == DragInput and Dragging then  
-                UpdateDrag(Input)  
-            end  
-        end)  
-
-        -- 3. Animation กดปุ่ม
-        Button.MouseButton1Down:Connect(function()  
-            TweenService:Create(Button, TweenInfo.new(0.08, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Size = PressSize, BackgroundTransparency = 0.25, Rotation = -2 }):Play()  
-            TweenService:Create(Stroke, TweenInfo.new(0.08), { Thickness = 3, Transparency = 0 }):Play()  
-            TweenService:Create(Highlight, TweenInfo.new(0.08), { BackgroundTransparency = 0 }):Play()  
-        end)  
-
-        Button.MouseButton1Up:Connect(function()  
-            TweenService:Create(Button, TweenInfo.new(0.22, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Size = NormalSize, BackgroundTransparency = 0.42, Rotation = 0 }):Play()  
-            TweenService:Create(Stroke, TweenInfo.new(0.22), { Thickness = 2, Transparency = 0.12 }):Play()  
-            TweenService:Create(Highlight, TweenInfo.new(0.22), { BackgroundTransparency = 0.3 }):Play()  
-        end)  
-
-        -- 4. ระบบกดปุ่มเพื่อยิง (เสกกระสุนโผล่หน้าฆาตกร 3 สตัด)
-        Button.MouseButton1Click:Connect(function()  
-            if Moved then  
-                Moved = false  
-                return  
-            end  
-
-            local Character = LocalPlayer.Character  
-            if not Character then return end  
-
-            local Humanoid = Character:FindFirstChildOfClass("Humanoid")  
-            if not Humanoid then return end  
-
-            -- ค้นหาปืน (Gun)
-            local Gun = Character:FindFirstChild("Gun") or (LocalPlayer:FindFirstChild("Backpack") and LocalPlayer.Backpack:FindFirstChild("Gun"))  
-
-            if not Gun then  
-                Window:Notify({ Title = "นายอำเภอ", Content = "ไม่พบปืนในตัวหรือกระเป๋า", Duration = 3 })  
-                return  
-            end  
-
-            -- ถือปืนอัตโนมัติ
-            if Gun.Parent ~= Character then  
-                Humanoid:EquipTool(Gun)  
-                task.wait(0.05)  
-            end  
-
-            Character = LocalPlayer.Character  
-            if not Character then return end  
-            Gun = Character:FindFirstChild("Gun")  
-            if not Gun then return end  
-
-            -- ตรวจสอบ Remote ยิง
-            local Shoot = Gun:FindFirstChild("Shoot") or getNil("Shoot", "RemoteEvent")  
-            if not Shoot then return end  
-
-            -- ค้นหา Murderer (คนที่ถือมีด หรือมีมีดในกระเป๋า)
-            local Murderer = nil  
-            for _, Player in ipairs(Players:GetPlayers()) do  
-                if Player ~= LocalPlayer then  
-                    local TargetChar = Player.Character  
-                    local TargetBag = Player:FindFirstChild("Backpack")  
-
-                    if (TargetChar and TargetChar:FindFirstChild("Knife")) or (TargetBag and TargetBag:FindFirstChild("Knife")) then  
-                        Murderer = Player  
-                        break  
-                    end  
-                end  
-            end  
-
-            if not Murderer or not Murderer.Character then  
-                Window:Notify({ Title = "นายอำเภอ", Content = "ไม่พบฆาตกรในห้อง", Duration = 3 })  
-                return  
-            end  
-
-            -- กำหนดเป้าหมาย (ตัวฆาตกร)
-            local TargetPart = Murderer.Character:FindFirstChild("Head") or Murderer.Character:FindFirstChild("HumanoidRootPart")  
-            if not TargetPart then return end  
-
-            local TargetCFrame = TargetPart.CFrame
-
-            -- คำนวณจุดโผล่กระสุน "ตรงหน้าฆาตกร ห่างออกไป 3 สตัด"
-            local SpawnPosition = TargetCFrame.Position + (TargetCFrame.LookVector * 3)
-
-            -- CFrame กำหนดให้กระสุนตั้งต้นจากจุดด้านหน้า 3 สตัด แล้วพุ่งเข้าหาหน้าฆาตกร
-            local OriginCFrame = CFrame.new(SpawnPosition, TargetCFrame.Position)
-            local TargetPosCFrame = CFrame.new(TargetCFrame.Position)
-
-            -- ส่งคำสั่งยิง
-            Shoot:FireServer(OriginCFrame, TargetPosCFrame)
-
-            Window:Notify({ Title = "นายอำเภอ", Content = "เสกกระสุนโผล่หน้าฆาตกร 3 สตัดแล้ว!", Duration = 3 })  
-        end)  
-
-        -- ล้าง Connection เมื่อทำลาย GUI (ป้องกัน Memory Leak)
-        ScreenGui.Destroying:Connect(function()  
-            if DragConnection then  
-                DragConnection:Disconnect()  
-                DragConnection = nil  
-            end  
-        end)  
-    end  
 })
